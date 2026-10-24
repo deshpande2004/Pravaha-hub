@@ -3,7 +3,7 @@ Unicode true
 SetCompressor /SOLID lzma
 !include "MUI2.nsh"
 !define APPNAME "Pravahax Suite"
-!define VERSION "1.2.0"
+!define VERSION "1.2.1"
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pravahax Suite"
 Name "${APPNAME}"
 OutFile "dist\PravahaxSuite-Setup-${VERSION}.exe"

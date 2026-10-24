@@ -5,7 +5,7 @@ const fs = require('fs');
 
 app.setAppUserModelId('com.pravahaxsuite.desktop'); // own taskbar icon, pinning and notifications on Windows
 
-const HOME = 'https://pravahax-suite.countrypande1.workers.dev/';
+const HOME = 'https://suite.pravahax.workers.dev/';
 const ORIGIN = new URL(HOME).origin;
 
 if (!app.requestSingleInstanceLock()) { app.quit(); }

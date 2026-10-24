@@ -517,7 +517,7 @@
      *  before turning worker data into an href. */
     function joinRow(url) {
       if (typeof url !== 'string' || url.length > 100) return;
-      if (!/^https:\/\/pravahax-suite\.countrypande1\.workers\.dev\/apps\/meetings\/#\/m\/(?:[a-z]{3}-[a-z]{4}-[a-z]{3}|[a-z]{4}-[a-z]{4}-[a-z]{4})$/.test(url)) return;
+      if (!/^https:\/\/suite\.pravahax\.workers\.dev\/apps\/meetings\/#\/m\/(?:[a-z]{3}-[a-z]{4}-[a-z]{3}|[a-z]{4}-[a-z]{4}-[a-z]{4})$/.test(url)) return;
       var node = el('div', 'row');
       node.append(el('b', null, 'Join'));
       var a = el('a', null, url);

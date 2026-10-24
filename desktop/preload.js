@@ -2,7 +2,7 @@
 // whenever the app is online it asks the service worker to download any app files not yet on this device
 // (only what is missing or changed), and reports progress to the taskbar/dock.
 const { contextBridge, ipcRenderer } = require('electron');
-contextBridge.exposeInMainWorld('pravahaxhubDesktop', { platform: process.platform, version: '1.2.0' });
+contextBridge.exposeInMainWorld('pravahaxhubDesktop', { platform: process.platform, version: '1.2.1' });
 
 function saveAll() {
   const sw = navigator.serviceWorker;
@@ -22,7 +22,7 @@ if (window.top === window) window.addEventListener('online', () => setTimeout(sa
 // In the desktop app, wording written for the website ("saved in this browser") reads as app wording
 // ("saved on this device"). Display text only: typed content, editors and fields are never touched.
 (() => {
-  if (!/(^|\.)pravahax-suite\.countrypande1\.workers\.dev$/.test(location.hostname)) return;
+  if (!/(^|\.)suite\.pravahax\.workers\.dev$/.test(location.hostname)) return;
   const RULES = [
     [/\bin this browser on this device\b/g, 'on this device'],
     [/\b(in|on) this browser\b/g, 'on this device'], [/\bIn this browser\b/g, 'On this device'],
