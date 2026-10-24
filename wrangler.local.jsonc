@@ -1,7 +1,7 @@
 {
   // Pravahahub: static apps in ./site plus the /api backend, LOCAL config: same as wrangler.jsonc minus the AI binding, so no Cloudflare login is needed. Run: npx wrangler dev -c wrangler.local.jsonc
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "everything-hub",
+  "name": "pravahahub",
   "main": "worker/index.js",
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
