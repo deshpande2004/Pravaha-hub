@@ -258,13 +258,13 @@ function rsvpUrl(value) {
 /**
  * The event's meeting link, or '' — the only other link this worker will put
  * in a mail. Held to the exact shape of an Pravahahub Meetings room link
- * (https://everything-hub.countrypande1.workers.dev/apps/meetings/#/m/<room code>), because meeting URLs reach
+ * (https://pravahahub.countrypande1.workers.dev/apps/meetings/#/m/<room code>), because meeting URLs reach
  * the calendar from outside too (ICS import), and this worker must not
  * become a way to mail guests an arbitrary URL under the calendar's name.
  */
 function meetingUrl(value) {
   if (typeof value !== 'string' || value.length > 100) return '';
-  return /^https:\/\/everything-hub\.countrypande1\.workers\.dev\/apps\/meetings\/#\/m\/(?:[a-z]{3}-[a-z]{4}-[a-z]{3}|[a-z]{4}-[a-z]{4}-[a-z]{4})$/.test(value)
+  return /^https:\/\/pravahahub\.countrypande1\.workers\.dev\/apps\/meetings\/#\/m\/(?:[a-z]{3}-[a-z]{4}-[a-z]{3}|[a-z]{4}-[a-z]{4}-[a-z]{4})$/.test(value)
     ? value
     : '';
 }
