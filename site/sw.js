@@ -4,10 +4,11 @@
  *       content-hashed build assets are cache-first (they never change); everything else is stale-while-revalidate.
  * The app cache survives updates so apps opened before keep working offline; only the shell cache is versioned.
  * Retired hosts (*.invalid) are never contacted; the old SDK address is answered with everything-core.js. */
-const VERSION = 'everything-v4-pravahaxhub-5';
+const VERSION = 'everything-v4-pravahaxhub-6';
 const SHELL = `${VERSION}-shell`;
 const APPS = 'everything-apps-v4';
 const FONTS = 'everything-fonts-v4';
+const OFFLINE_META = 'everything-offline-meta-v4';
 const SHELL_FILES = ['./', 'index.html', 'hub.css', 'hub.js', 'apps.json', 'everything-core.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-180.png', 'icon-32.png', 'fonts.css', 'fonts/InstrumentSerif-italic-latin-1.woff2', 'fonts/InstrumentSerif-italic-latin-ext-0.woff2', 'fonts/InstrumentSerif-normal-latin-3.woff2', 'fonts/InstrumentSerif-normal-latin-ext-2.woff2', 'fonts/Inter-normal-latin-5.woff2', 'fonts/Inter-normal-latin-ext-4.woff2'];
 const EHUB = /\.invalid$/i;
 const TRACKERS = /(^|\.)(plausible\.io|google-analytics\.com|googletagmanager\.com|analytics\.google\.com|segment\.io|cdn\.segment\.com|mixpanel\.com|hotjar\.com|posthog\.com|sentry\.io)$/i;
@@ -27,11 +28,11 @@ self.addEventListener('install', (e) => {
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
-    const keep = new Set([SHELL, APPS, FONTS]);
+    const keep = new Set([SHELL, APPS, FONTS, OFFLINE_META]);
     const keys = await caches.keys();
     // Caches from the first service-worker generations (before network-first app pages) can hold app pages that
     // need the retired SDK file; pages already open under them show "SDK failed to load". Purge and reload once.
-    const legacy = keys.some((k) => !keep.has(k) && !/^everything-(v4-|apps-v4$|fonts-v4$)/.test(k));
+    const legacy = keys.some((k) => !keep.has(k) && !/^everything-(v4-|apps-v4$|fonts-v4$|offline-meta-v4$)/.test(k));
     for (const k of keys) if (!keep.has(k)) await caches.delete(k);
     if (keys.includes(APPS)) {
       const ac = await caches.open(APPS);
@@ -46,7 +47,39 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('message', (e) => {
   if (e.data === 'skipWaiting') self.skipWaiting();
   else if (e.data && e.data.type === 'ehub-sw-version' && e.ports && e.ports[0]) e.ports[0].postMessage({ version: VERSION });
+  else if (e.data && e.data.type === 'ehub-save-all-offline') e.waitUntil(saveAllOffline());
 });
+
+// "Save everything for offline" (used by the desktop app): downloads every app file listed in offline-manifest.json
+// into the app cache, so every app opens offline without having been opened online first. Only missing files are
+// fetched, plus non-hashed files when the manifest version changed. Progress is posted to every window.
+let saving = null;
+function saveAllOffline() { return saving || (saving = doSaveAll().finally(() => { saving = null; })); }
+async function doSaveAll() {
+  const say = async (m) => { for (const w of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) w.postMessage(Object.assign({ type: 'ehub-offline-progress' }, m)); };
+  let man;
+  try { const r = await fetch(new URL('offline-manifest.json', scopeURL), { cache: 'no-store' }); if (!r.ok) throw 0; man = await r.json(); } catch { await say({ state: 'error' }); return; }
+  const meta = await caches.open(OFFLINE_META);
+  const prev = await meta.match('version').then((r) => r && r.text()).catch(() => null);
+  const c = await caches.open(APPS);
+  const have = new Set((await c.keys()).map((r) => stripQuery(r.url)));
+  const changed = prev !== man.version;
+  const todo = man.files.map((f) => new URL(f, scopeURL).href).filter((u) => !have.has(u) || (changed && !HASHED.test(new URL(u).pathname)));
+  const total = man.files.length;
+  let done = total - todo.length, failed = 0, i = 0, last = 0;
+  await say({ state: 'start', done, total });
+  const worker = async () => {
+    while (i < todo.length) {
+      const u = todo[i++];
+      try { const r = await fetch(new Request(u, { cache: 'reload' })); if (r.ok && r.status === 200) await c.put(u, await clean(r)); else failed++; } catch { failed++; }
+      done++;
+      const now = Date.now(); if (now - last > 400) { last = now; say({ state: 'progress', done, total }); }
+    }
+  };
+  await Promise.all(Array.from({ length: 6 }, worker));
+  if (!failed) await meta.put('version', new Response(man.version));
+  await say({ state: 'done', done, total, failed });
+}
 
 const scopeURL = new URL(self.registration.scope);
 const inShell = (url) => url.origin === scopeURL.origin && SHELL_FILES.some((f) => new URL(f, scopeURL).pathname === url.pathname);
