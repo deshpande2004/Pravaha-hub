@@ -1,7 +1,7 @@
 {
   "name": "pravahaxhub",
   "productName": "Pravahaxhub",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Pravahaxhub desktop app for Windows",
   "author": "Pravahaxhub",
   "license": "MIT",
@@ -52,6 +52,25 @@
     },
     "portable": {
       "artifactName": "Pravahaxhub-Portable-${version}.${ext}"
+    },
+    "electronLanguages": [
+      "en-US"
+    ],
+    "compression": "maximum",
+    "mac": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "artifactName": "Pravahaxhub-${version}-mac-${arch}.${ext}"
     }
   }
 }

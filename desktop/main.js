@@ -1,5 +1,5 @@
 // Pravahaxhub desktop: opens the live Pravahaxhub site in its own window.
-const { app, BrowserWindow, shell, Menu, session } = require('electron');
+const { app, BrowserWindow, shell, Menu, session, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -59,6 +59,14 @@ function create() {
     if (isMain && code !== -3) win.loadFile(path.join(__dirname, 'offline.html'));
   });
 }
+
+// Offline download progress from the service worker, shown on the taskbar (Windows) / dock (macOS).
+ipcMain.on('offline-progress', (e, d) => {
+  const w = BrowserWindow.fromWebContents(e.sender) || win;
+  if (!w || w.isDestroyed()) return;
+  if ((d.state === 'start' || d.state === 'progress') && d.total && d.done < d.total) w.setProgressBar(d.done / d.total);
+  else w.setProgressBar(-1);
+});
 
 app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
 
