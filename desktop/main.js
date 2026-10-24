@@ -27,7 +27,7 @@ function create() {
     title: 'Pravahaxhub', backgroundColor: '#ffffff', show: false,
     icon: path.join(__dirname, 'build', 'icon.png'),
     autoHideMenuBar: false,
-    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, spellcheck: true }
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, spellcheck: true, nodeIntegrationInSubFrames: true }
   });
   win.setMenuBarVisibility(false); // no browser-style menu bar; shortcuts still work
   win.once('ready-to-show', () => { if (st.maximized) win.maximize(); win.show(); });

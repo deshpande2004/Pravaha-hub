@@ -3,7 +3,7 @@ Unicode true
 SetCompressor /SOLID lzma
 !include "MUI2.nsh"
 !define APPNAME "Pravahaxhub"
-!define VERSION "1.1.0"
+!define VERSION "1.1.1"
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pravahaxhub"
 Name "${APPNAME}"
 OutFile "dist\Pravahaxhub-Setup-${VERSION}.exe"
