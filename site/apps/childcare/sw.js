@@ -1,12 +1,12 @@
 /*
  * Offline support for the app shell. Data never goes through here: records
- * come from Pravahahub and are cached by the app itself in IndexedDB.
+ * come from Pravahaxhub and are cached by the app itself in IndexedDB.
  *
  * - Page loads: network first, falling back to the cached shell offline.
  * - Requests that ask to revalidate (the team worker bundle): network first.
  * - Hashed build assets: cache first (their names change with every build).
  * - Other same-origin files (icons, manifest): stale while revalidate.
- * - Cross-origin requests (Pravahahub's API and SDK) are never touched.
+ * - Cross-origin requests (Pravahaxhub's API and SDK) are never touched.
  */
 const CACHE = 'childcare-v1-nolocal2';
 const SHELL = ['./', './index.html', './manifest.json', './icons/icon-192.png', './favicon.ico'];

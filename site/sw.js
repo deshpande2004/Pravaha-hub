@@ -1,10 +1,10 @@
-/* Pravahahub — service worker.
+/* Pravahaxhub — service worker.
  * Shell (launcher + engine): network-first with cache fallback, so updates land and offline still works.
  * Apps: page HTML is network-first (a fresh deploy never pairs an old page with deleted chunks);
  *       content-hashed build assets are cache-first (they never change); everything else is stale-while-revalidate.
  * The app cache survives updates so apps opened before keep working offline; only the shell cache is versioned.
  * Retired hosts (*.invalid) are never contacted; the old SDK address is answered with everything-core.js. */
-const VERSION = 'everything-v4-pravahahub-4';
+const VERSION = 'everything-v4-pravahaxhub-5';
 const SHELL = `${VERSION}-shell`;
 const APPS = 'everything-apps-v4';
 const FONTS = 'everything-fonts-v4';
@@ -58,7 +58,7 @@ self.addEventListener('fetch', (e) => {
     if (/^sdk\.everything-hub\.invalid$/i.test(url.hostname)) {
       e.respondWith(caches.match(new URL('everything-core.js', scopeURL).href).then((r) => r || fetch(new URL('everything-core.js', scopeURL))).catch(() => new Response('', { headers: { 'content-type': 'text/javascript' } })));
     } else {
-      e.respondWith(new Response(JSON.stringify({ success: false, error: { code: 'offline_local', message: 'Pravahahub runs locally.' } }), { status: 503, headers: { 'content-type': 'application/json' } }));
+      e.respondWith(new Response(JSON.stringify({ success: false, error: { code: 'offline_local', message: 'Pravahaxhub runs locally.' } }), { status: 503, headers: { 'content-type': 'application/json' } }));
     }
     return;
   }
@@ -121,7 +121,7 @@ async function staleWhileRevalidate(req, name, e) {
   return (await net) || offline();
 }
 function offline() {
-  return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><body style="font:15px system-ui;padding:40px;color:#444">You’re offline and this part of Pravahahub hasn’t been saved on this device yet. Open it once while online to use it offline.</body>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
+  return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><body style="font:15px system-ui;padding:40px;color:#444">You’re offline and this part of Pravahaxhub hasn’t been saved on this device yet. Open it once while online to use it offline.</body>', { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
 
 // Push and notifications for apps (they register through the hub's worker). Payload: { title, body, app, route, tag, icon }.
@@ -129,7 +129,7 @@ self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : '' }; }
   const app = typeof d.app === 'string' ? d.app : '';
-  e.waitUntil(self.registration.showNotification(d.title || 'Pravahahub', {
+  e.waitUntil(self.registration.showNotification(d.title || 'Pravahaxhub', {
     body: d.body || '', tag: d.tag || undefined, icon: d.icon || (app ? `apps/${app}/icon-128.png` : 'icon-192.png'), badge: 'icon-192.png',
     data: Object.assign({}, d.data || {}, { app, route: d.route || (d.data && d.data.route) || '' }),
   }));

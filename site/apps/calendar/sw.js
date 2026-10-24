@@ -1,8 +1,8 @@
 /**
  * Calendar service worker — makes the app installable and lets the static shell
  * load offline. It is deliberately conservative: it caches ONLY the static app
- * shell (own-origin build output) plus the Pravahahub SDK script, and NEVER touches
- * Pravahahub's data/auth API. That boundary is what keeps offline support from ever
+ * shell (own-origin build output) plus the Pravahaxhub SDK script, and NEVER touches
+ * Pravahaxhub's data/auth API. That boundary is what keeps offline support from ever
  * creating sync issues — no user data ever passes through this cache.
  *
  * Shipped verbatim from public/ to the dist root by Vite, so it registers at

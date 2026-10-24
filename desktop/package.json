@@ -1,9 +1,9 @@
 {
-  "name": "pravahahub",
-  "productName": "Pravahahub",
+  "name": "pravahaxhub",
+  "productName": "Pravahaxhub",
   "version": "1.0.0",
-  "description": "Pravahahub desktop app for Windows",
-  "author": "Pravahahub",
+  "description": "Pravahaxhub desktop app for Windows",
+  "author": "Pravahaxhub",
   "license": "MIT",
   "main": "main.js",
   "scripts": {
@@ -17,8 +17,8 @@
     "png-to-ico": "^2.1.8"
   },
   "build": {
-    "appId": "com.pravahahub.desktop",
-    "productName": "Pravahahub",
+    "appId": "com.pravahaxhub.desktop",
+    "productName": "Pravahaxhub",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -33,17 +33,17 @@
     "win": {
       "icon": "build/icon.ico",
       "signAndEditExecutable": false,
-      "artifactName": "Pravahahub-${version}-${arch}.${ext}"
+      "artifactName": "Pravahaxhub-${version}-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Pravahahub",
+      "shortcutName": "Pravahaxhub",
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
-      "artifactName": "Pravahahub-Setup-${version}.${ext}",
+      "artifactName": "Pravahaxhub-Setup-${version}.${ext}",
       "warningsAsErrors": false,
       "installerLanguages": [
         "en_US"
@@ -51,7 +51,7 @@
       "multiLanguageInstaller": false
     },
     "portable": {
-      "artifactName": "Pravahahub-Portable-${version}.${ext}"
+      "artifactName": "Pravahaxhub-Portable-${version}.${ext}"
     }
   }
 }

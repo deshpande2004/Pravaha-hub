@@ -1,7 +1,7 @@
 /**
  * The register must OPEN without a network, not just keep running: a tablet
  * that rebooted during an outage is exactly the moment the offline promise
- * matters most. This worker caches the built shell and a copy of the Pravahahub
+ * matters most. This worker caches the built shell and a copy of the Pravahaxhub
  * SDK so the app boots from disk; the data layer then falls back to its own
  * local snapshot (see store.initFromBootCache).
  *
@@ -16,9 +16,9 @@
  *  - other same-origin files (manifest, icons): cached copy at once,
  *    refreshed behind it - their names never change, so cache-first would
  *    freeze the first-ever copy for the life of the install;
- *  - the Pravahahub SDK (that exact URL): cached copy first, refreshed in the
+ *  - the Pravahaxhub SDK (that exact URL): cached copy first, refreshed in the
  *    background;
- *  - everything else (Pravahahub API traffic): straight to the network, never
+ *  - everything else (Pravahaxhub API traffic): straight to the network, never
  *    intercepted.
  */
 
@@ -55,7 +55,7 @@ self.addEventListener('install', (event) => {
     await cache.addAll(CORE);
     // Cross-origin script: a no-cors request stores an opaque copy that a
     // <script src> can still execute offline.
-    // hub: Pravahahub SDK replaced by local shim; caching it is best-effort.
+    // hub: Pravahaxhub SDK replaced by local shim; caching it is best-effort.
     try { await cache.put(SDK_URL, await fetch(new Request(SDK_URL, { mode: 'no-cors' }))); } catch (e) {}
     // The hashed bundle files are all referenced from the shell page itself.
     const html = await (await cache.match('./')).text();
@@ -205,5 +205,5 @@ self.addEventListener('fetch', (event) => {
   if (url.origin === self.location.origin) {
     event.respondWith(url.pathname.includes('/assets/') ? immutable(request) : revalidated(request));
   }
-  // Anything else - Pravahahub API calls above all - goes straight through.
+  // Anything else - Pravahaxhub API calls above all - goes straight through.
 });

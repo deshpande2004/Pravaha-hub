@@ -67,7 +67,7 @@
 		evRegion: (wsId) => `tc:ws:${wsId}:ev:`,
 		/**
 		* One shard of the signal region: `tc:ws:{wsId}:ev:s{n}`, exactly five
-		* `:`-segments. An Pravahahub Events subscription anchors on an exact key only
+		* `:`-segments. An Pravahaxhub Events subscription anchors on an exact key only
 		* while it is within six segments; past that the anchor falls back to the
 		* first six and the whole key becomes a filter, which — in a naming where
 		* the shard index sat beyond that point — would put every shard on one
@@ -533,7 +533,7 @@
 	/**
 	* Small helpers for the worker: error shape, JSON responses, caller identity,
 	* and the atomic block append. `me` is the worker runtime's global for the
-	* owner's Pravahahub resources; everything shared lives in `me.ehub.kv`.
+	* owner's Pravahaxhub resources; everything shared lives in `me.ehub.kv`.
 	*/
 	var HttpError = class extends Error {
 		constructor(status, code, message, headers = null) {
@@ -616,7 +616,7 @@
 		throw new HttpError(status, code, message, headers);
 	}
 	/**
-	* Let the runtime finish `deferred` after the answer has gone out. An Pravahahub
+	* Let the runtime finish `deferred` after the answer has gone out. An Pravahaxhub
 	* worker's event carries `waitUntil` (the service-worker method): the
 	* promise keeps the isolate alive without holding the response, which is
 	* what lets the search index, the pushes and the change signal ride behind
@@ -634,7 +634,7 @@
 		await all;
 	}
 	/**
-	* Say how long the answer took, and how much of that was spent asking Pravahahub
+	* Say how long the answer took, and how much of that was spent asking Pravahaxhub
 	* who the caller is (`auth`, and 0 where a cached identity answered it —
 	* see IDENTITY_TTL_MS). The rest is the store, which is round trips in a
 	* row, so `total - auth` divided by the calls a route makes is what one
@@ -662,7 +662,7 @@
 	var workerHost = null;
 	/**
 	* Wrap a route handler: thrown HttpErrors become JSON error responses with
-	* the same { error, code, message } shape Pravahahub itself uses; anything else
+	* the same { error, code, message } shape Pravahaxhub itself uses; anything else
 	* is a 500 that says so without leaking a stack. The handler is also given
 	* `ctx.defer(work)` for anything the answer does not depend on (see
 	* settleDeferred).
@@ -701,7 +701,7 @@
 	/**
 	* How long an answered identity is reused for the token that earned it.
 	*
-	* Identifying a caller is an HTTP call to Pravahahub (`getUser()` is a GET of
+	* Identifying a caller is an HTTP call to Pravahaxhub (`getUser()` is a GET of
 	* /whoami), made on every request this worker serves — a poll every few
 	* seconds from every open tab, and once more for every message, read,
 	* reaction and keystroke burst. It is also the one thing that cannot be
@@ -711,7 +711,7 @@
 	* So an answer is kept for this long, against a hash of the token that
 	* earned it. The cost is that a session ended elsewhere — signed out,
 	* revoked — goes on being accepted by an already-running isolate for up to
-	* this long. Half a minute is short against how long an Pravahahub session lives
+	* this long. Half a minute is short against how long an Pravahaxhub session lives
 	* and close to the poll interval the app already runs on, and it is the
 	* whole of the exposure: nothing is cached across isolates, nothing is
 	* written down, and a token that was never valid is never cached at all.
@@ -723,7 +723,7 @@
 	var identityCache = /* @__PURE__ */ new Map();
 	/**
 	* Who is calling. ehub.workers.exec() forwards the caller's token, and the
-	* runtime hands it to us as `user.ehub`; asking Pravahahub who that token belongs
+	* runtime hands it to us as `user.ehub`; asking Pravahaxhub who that token belongs
 	* to is the only trustworthy identity, so nothing in a request body is ever
 	* believed about who sent it. The answer is then reused for a short while
 	* (see IDENTITY_TTL_MS), which is the only way this call comes off the front
@@ -740,7 +740,7 @@
 		return token && true ? sha256(token) : null;
 	}
 	/**
-	* Who the caller is, if that is already known — without asking Pravahahub, and
+	* Who the caller is, if that is already known — without asking Pravahaxhub, and
 	* without refusing anyone: null means "not known yet", never "not allowed".
 	*
 	* This is what lets a request make one read instead of two. Every key a
@@ -762,7 +762,7 @@
 		return null;
 	}
 	async function identify(user) {
-		if (!user || !user.ehub) fail(401, "unauthorized", "Sign in with Pravahahub to continue");
+		if (!user || !user.ehub) fail(401, "unauthorized", "Sign in with Pravahaxhub to continue");
 		const key = await identityKey(user);
 		if (key) {
 			const hit = identityCache.get(key);
@@ -781,7 +781,7 @@
 			info = null;
 		}
 		authMs.set(user, Date.now() - started);
-		if (!info || !info.uuid) fail(401, "unauthorized", "Your Pravahahub session is not valid");
+		if (!info || !info.uuid) fail(401, "unauthorized", "Your Pravahaxhub session is not valid");
 		const id = {
 			uuid: String(info.uuid),
 			username: String(info.username || "").toLowerCase()
@@ -3249,7 +3249,7 @@
 		return `app-${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 	}
 	/**
-	* The app uid an Pravahahub auth token carries, or null: no token, a user-scoped
+	* The app uid an Pravahaxhub auth token carries, or null: no token, a user-scoped
 	* session with no app claim at all, or anything that will not parse. Both
 	* the worker and the client decode it themselves, and from both claim
 	* forms, because a v2 token — the only kind the platform has signed for
@@ -3324,7 +3324,7 @@
 	* worker anyway, so six hours costs nothing real. Consent
 	* (events_kv_handle_not_delegated) is different: it is the one code a
 	* person can flip from outside the app entirely, at any moment, with
-	* nothing telling the worker — granted from the Pravahahub GUI, another device,
+	* nothing telling the worker — granted from the Pravahaxhub GUI, another device,
 	* or a session long since closed, none of which touches this worker's
 	* cached verdict. An owner's own tab open at the time heals that at once
 	* (see shell.js's healEventsVerdict); this thirty minutes covers the owner
@@ -3357,7 +3357,7 @@
 	};
 	var DEFAULT_MEMBER_BACKOFF_MS = 6e5;
 	/**
-	* Ask Pravahahub for a handle on this workspace's signal region for one grantee.
+	* Ask Pravahaxhub for a handle on this workspace's signal region for one grantee.
 	* Never throws: a network failure, a timeout, and an error response all come
 	* back as { ok: false, code, why }, which the caller turns into a backoff
 	* rather than a failed request of its own.
@@ -3409,7 +3409,7 @@
 		}
 	}
 	/**
-	* Ask Pravahahub to give up one previously minted handle, mirroring mintHandle in
+	* Ask Pravahaxhub to give up one previously minted handle, mirroring mintHandle in
 	* every way that matters: never throws, the same timeout, and a network
 	* failure or an error response both come back as { ok: false, code, why }.
 	* Retiring an already-revoked handle is idempotent on the platform's side
@@ -3551,7 +3551,7 @@
 	* releaseHandle is the only other place a handle is given back, and it reads
 	* `ev.h`, which this is about to overwrite, so a handle abandoned here would
 	* sit on one of the owner's live-handle slots (100 per app, 50 on free)
-	* until cleared by hand from an Pravahahub session. Revoking is idempotent and
+	* until cleared by hand from an Pravahaxhub session. Revoking is idempotent and
 	* already answers ok on a 404/subject_does_not_exist, so the ordinary case
 	* here — a handle that is already gone, which is why this was called at all
 	* — costs one wasted round trip, while the uncommon one (an app binding
@@ -3951,7 +3951,7 @@
 	* vouches for its own people: when the two workspaces are connected they
 	* come to share a secret, and the partner's worker signs a short-lived
 	* token naming one of its members. The host checks the signature against
-	* the connection's secret and the named uuid against the Pravahahub identity
+	* the connection's secret and the named uuid against the Pravahaxhub identity
 	* of whoever presents the token, so a token is only ever good for the
 	* person it names, and only for a few minutes.
 	*
@@ -4113,13 +4113,13 @@
 	//#endregion
 	//#region worker/index.js
 	/**
-	* Teamchat API: an Pravahahub Serverless Worker.
+	* Teamchat API: an Pravahaxhub Serverless Worker.
 	*
-	* Every workspace owner runs a copy of this worker in their own Pravahahub
+	* Every workspace owner runs a copy of this worker in their own Pravahaxhub
 	* account (the app deploys it for them), so a workspace's data lives in its
 	* owner's key-value store (me.ehub.kv), which is what lets every member
 	* read and write the same channels, and the owner pays for it. Callers are
-	* identified by the Pravahahub session that ehub.workers.exec() forwards;
+	* identified by the Pravahaxhub session that ehub.workers.exec() forwards;
 	* nothing about identity is trusted from request bodies. Only the owner may
 	* create workspaces here (see assertMayCreate); members of other people's
 	* workspaces only ever touch data inside those workspaces.
@@ -4744,7 +4744,7 @@
 	* of them go in a single batched read: the workspace, the caller's document,
 	* and whatever else the route asked for (`also`, answered as `extra`).
 	*
-	* Where it is not, asking Pravahahub is an HTTP call of its own, so it runs
+	* Where it is not, asking Pravahaxhub is an HTTP call of its own, so it runs
 	* beside the workspace read rather than in front of it, and only the
 	* caller's own keys wait on it. Done one after another, as it used to be,
 	* every request here began with three round trips before it looked at
@@ -6647,7 +6647,7 @@
 		};
 	}));
 	/**
-	* An Pravahahub worker only runs while handling a request, so anything due is
+	* An Pravahaxhub worker only runs while handling a request, so anything due is
 	* delivered by whichever member's sync poll comes first after its time.
 	* The queue is one document per workspace, a map by id (so entries can be
 	* claimed one at a time), and the earliest due time is kept in the
@@ -7477,7 +7477,7 @@
 	/**
 	* "I am in the huddle here": start one, join the one in progress, or, sent
 	* again every HUDDLE_HEARTBEAT_MS, stay in it. The body carries the invite
-	* code of the caller's own Pravahahub Peer server, which is what the others dial;
+	* code of the caller's own Pravahaxhub Peer server, which is what the others dial;
 	* the roster that comes back is what the caller dials. Threads have no
 	* huddles of their own (the conversation's is theirs), and a channel has to
 	* be joined, not merely previewed.
@@ -10555,7 +10555,7 @@
 	* the id makes the record a direct get, the secret is stored only as a
 	* SHA-256 hash and compared in constant time, and the token is shown to the
 	* admin exactly once. These are the only routes besides /health that take
-	* no Pravahahub session, so they are rate-limited per token and reject oversized
+	* no Pravahaxhub session, so they are rate-limited per token and reject oversized
 	* bodies before touching storage.
 	*/
 	var TOKEN_RE = /^(tch|tcb)_([a-z0-9]{10})_([a-z0-9]{32})$/;

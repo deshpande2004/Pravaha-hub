@@ -473,7 +473,7 @@ body.in-app .appbar { transform: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
 
-/* ---------------------------------------------------------------- Files (Pravahahub storage) */
+/* ---------------------------------------------------------------- Files (Pravahaxhub storage) */
 .files-btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px 0 11px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; font-weight: 500; backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); transition: transform 0.35s var(--spring), box-shadow 0.2s; }
 .files-btn:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
 .files-btn svg { width: 17px; height: 17px; }

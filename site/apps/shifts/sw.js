@@ -1,7 +1,7 @@
 /**
  * App-shell service worker: network-first with a cache fallback, so the
  * installed PWA stays fresh online and still opens offline. Application
- * data lives in Pravahahub KV with a localStorage mirror; this worker only
+ * data lives in Pravahaxhub KV with a localStorage mirror; this worker only
  * handles the shell (HTML, hashed assets, icons, manifest).
  */
 const CACHE_PREFIX = 'shifts-shell--nolocal2';
@@ -54,7 +54,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (url.origin !== location.origin) return; // Pravahahub SDK and APIs pass through
+  if (url.origin !== location.origin) return; // Pravahaxhub SDK and APIs pass through
 
   event.respondWith(
     fetch(request)

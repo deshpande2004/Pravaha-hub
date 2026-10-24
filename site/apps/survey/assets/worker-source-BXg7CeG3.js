@@ -520,10 +520,10 @@ export function questionNumbers(survey) {
   return out;
 }
 `,collector:r=`/**
- * Response collector: an Pravahahub serverless worker deployed into the survey
+ * Response collector: an Pravahaxhub serverless worker deployed into the survey
  * creator's own account (see src/data/collector-client.js for deployment).
  *
- * Respondents have no Pravahahub account and cannot reach the creator's storage,
+ * Respondents have no Pravahaxhub account and cannot reach the creator's storage,
  * so this worker stands between them: it serves published surveys and stores
  * responses in the creator's KV. It serves no HTML. The respondent page
  * (r/index.html on the app's own hosting) calls this JSON API.

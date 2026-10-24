@@ -1,5 +1,5 @@
 // Outbound email through Resend (https://resend.com). Optional: set the RESEND_API_KEY secret
-// (and EMAIL_FROM, e.g. "Pravahahub <hub@yourdomain.com>", once your domain is verified).
+// (and EMAIL_FROM, e.g. "Pravahaxhub <hub@yourdomain.com>", once your domain is verified).
 export const emailConfigured = (env) => !!(env && env.RESEND_API_KEY);
 
 const MAX_RECIPIENTS = 20;
@@ -9,7 +9,7 @@ export async function sendEmail(env, msg, who) {
   const to = list(msg.to), cc = list(msg.cc), bcc = list(msg.bcc);
   if (!to.length) return { delivered: [], failed: [], message: 'No valid recipient.' };
   if (to.length + cc.length + bcc.length > MAX_RECIPIENTS) return { delivered: [], failed: to, message: 'Too many recipients.' };
-  const from = env.EMAIL_FROM || 'Pravahahub <onboarding@resend.dev>';
+  const from = env.EMAIL_FROM || 'Pravahaxhub <onboarding@resend.dev>';
   const body = {
     from, to, subject: String(msg.subject || '(no subject)').slice(0, 300),
     text: msg.text ? String(msg.text) : undefined,

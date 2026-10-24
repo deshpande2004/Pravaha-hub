@@ -55,5 +55,5 @@ self.addEventListener('fetch', (event) => {
       return response;
     })());
   }
-  /* Calls to the user's Pravahahub storage always go to the network. */
+  /* Calls to the user's Pravahaxhub storage always go to the network. */
 });

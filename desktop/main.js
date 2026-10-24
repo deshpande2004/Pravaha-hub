@@ -1,9 +1,9 @@
-// Pravahahub desktop: opens the live Pravahahub site in its own window.
+// Pravahaxhub desktop: opens the live Pravahaxhub site in its own window.
 const { app, BrowserWindow, shell, Menu, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-app.setAppUserModelId('com.pravahahub.desktop'); // own taskbar icon, pinning and notifications on Windows
+app.setAppUserModelId('com.pravahaxhub.desktop'); // own taskbar icon, pinning and notifications on Windows
 
 const HOME = 'https://pravahax-hub.countrypande1.workers.dev/';
 const ORIGIN = new URL(HOME).origin;
@@ -24,7 +24,7 @@ function create() {
   const st = loadState();
   win = new BrowserWindow({
     x: st.x, y: st.y, width: st.width || 1400, height: st.height || 900, minWidth: 800, minHeight: 560,
-    title: 'Pravahahub', backgroundColor: '#ffffff', show: false,
+    title: 'Pravahaxhub', backgroundColor: '#ffffff', show: false,
     icon: path.join(__dirname, 'build', 'icon.png'),
     autoHideMenuBar: false,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, spellcheck: true }
@@ -33,8 +33,8 @@ function create() {
   win.once('ready-to-show', () => { if (st.maximized) win.maximize(); win.show(); });
   win.on('close', saveState);
   win.webContents.setVisualZoomLevelLimits(1, 1); // no accidental pinch-zoom of the whole window
-  win.on('page-title-updated', (e) => { e.preventDefault(); win.setTitle('Pravahahub'); });
-  // Mouse back/forward buttons move within Pravahahub.
+  win.on('page-title-updated', (e) => { e.preventDefault(); win.setTitle('Pravahaxhub'); });
+  // Mouse back/forward buttons move within Pravahaxhub.
   win.on('app-command', (e, cmd) => {
     const h = win.webContents.navigationHistory;
     if (cmd === 'browser-backward' && h.canGoBack()) h.goBack();
@@ -42,10 +42,10 @@ function create() {
   });
   win.loadURL(HOME);
 
-  // Links to other sites open in the user's browser; Pravahahub pages (and its app windows/popups) stay in-app.
+  // Links to other sites open in the user's browser; Pravahaxhub pages (and its app windows/popups) stay in-app.
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith(ORIGIN) || url === 'about:blank') {
-      return { action: 'allow', overrideBrowserWindowOptions: { autoHideMenuBar: false, title: 'Pravahahub', icon: path.join(__dirname, 'build', 'icon.png') } };
+      return { action: 'allow', overrideBrowserWindowOptions: { autoHideMenuBar: false, title: 'Pravahaxhub', icon: path.join(__dirname, 'build', 'icon.png') } };
     }
     if (/^(https?|mailto|tel):/i.test(url)) shell.openExternal(url);
     return { action: 'deny' };
@@ -73,7 +73,7 @@ app.whenReady().then(() => {
     desktopCapturer.getSources({ types: ['screen', 'window'] }).then((s) => cb({ video: s[0] })).catch(() => cb({}));
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate([
-    { label: 'Pravahahub', submenu: [
+    { label: 'Pravahaxhub', submenu: [
       { label: 'Home', accelerator: 'Alt+Home', click: () => win && win.loadURL(HOME) },
       { role: 'reload' }, { role: 'forceReload' }, { type: 'separator' },
       { label: 'Back', accelerator: 'Alt+Left', click: () => { const h = win && win.webContents.navigationHistory; if (h && h.canGoBack()) h.goBack(); } },
