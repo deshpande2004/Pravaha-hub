@@ -1,0 +1,57 @@
+{
+  "name": "pravahahub",
+  "productName": "Pravahahub",
+  "version": "1.0.0",
+  "description": "Pravahahub desktop app for Windows",
+  "author": "Pravahahub",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis portable --x64"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "resedit": "^2.0.2",
+    "png-to-ico": "^2.1.8"
+  },
+  "build": {
+    "appId": "com.pravahahub.desktop",
+    "productName": "Pravahahub",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "offline.html",
+      "build/icon.png"
+    ],
+    "afterPack": "./afterPack.js",
+    "win": {
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false,
+      "artifactName": "Pravahahub-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Pravahahub",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "artifactName": "Pravahahub-Setup-${version}.${ext}",
+      "warningsAsErrors": false,
+      "installerLanguages": [
+        "en_US"
+      ],
+      "multiLanguageInstaller": false
+    },
+    "portable": {
+      "artifactName": "Pravahahub-Portable-${version}.${ext}"
+    }
+  }
+}
