@@ -1,4 +1,4 @@
-// Pravahaxhub server: static site (./site) + /api/* on the same Cloudflare Worker.
+// Pravahax Suite server: static site (./site) + /api/* on the same Cloudflare Worker.
 //   /api/health                      status and which optional features are configured
 //   /api/session                     claim this browser's identity and get its signature (see runtime.js)
 //   /api/ai/...                      OpenAI-compatible chat, images, transcription, speech on Workers AI (binding AI)
@@ -52,7 +52,7 @@ export async function rateLimit(env, kind, who, ip) {
   catch (e) { return null; } // never fail closed because the counter is unreachable
   if (r && r.ok === false) {
     const what = { ai: 'AI', image: 'image generation', fetch: 'web requests', email: 'email', session: 'sign-ins' }[kind] || kind;
-    const msg = /:all$/.test(r.bucket || '') ? `Pravahaxhub has reached today's ${what} limit. Try again tomorrow.`
+    const msg = /:all$/.test(r.bucket || '') ? `Pravahax Suite has reached today's ${what} limit. Try again tomorrow.`
       : `You've reached the ${what} limit for now. Try again in ${fmtWait(r.retryAfter)}.`;
     return json({ success: false, error: { code: 'rate_limited', message: msg }, message: msg }, 429, { 'retry-after': String(r.retryAfter || 60) });
   }
@@ -97,7 +97,7 @@ async function api(request, env, url) {
   if (p.startsWith('/api/ai/')) {
     if (!env.AI) return json({ error: { message: 'AI is not enabled on this server.' } }, 503);
     const who = await verifiedIdentity(env, request.headers);
-    if (!who) return json({ error: { message: 'Open this from an Pravahaxhub app.' } }, 401);
+    if (!who) return json({ error: { message: 'Open this from an Pravahax Suite app.' } }, 401);
     const tail = p.slice('/api/ai'.length);
     if (tail === '/models') return json({ data: [{ id: 'default', object: 'model', owned_by: 'everything-hub' }] });
     if (request.method !== 'POST') return json({ error: { message: 'Not found' } }, 404);
@@ -159,7 +159,7 @@ export function scriptFor(app, inst) {
 
 export async function routeWorker(env, app, inst, path, search, request) {
   const key = scriptFor(app, inst);
-  if (!key) return json({ message: 'This app has no team server on Pravahaxhub.' }, 404);
+  if (!key) return json({ message: 'This app has no team server on Pravahax Suite.' }, 404);
   const stub = env.APP_SERVER.get(env.APP_SERVER.idFromName(key + '|' + inst));
   const h = new Headers(request.headers);
   h.delete('x-ehub-sys');
@@ -432,7 +432,7 @@ export class AppServer extends DurableObject {
       },
       email: {
         send: async (msg) => {
-          if (!emailConfigured(env)) { const e = new Error('Email sending is not set up on this Pravahaxhub server yet.'); e.code = 'email_not_configured'; e.status = 503; throw e; }
+          if (!emailConfigured(env)) { const e = new Error('Email sending is not set up on this Pravahax Suite server yet.'); e.code = 'email_not_configured'; e.status = 503; throw e; }
           const limited = await rateLimit(env, 'email', who.uuid === SYSTEM_OWNER.uuid ? null : who, 'server');
           if (limited) { const j = await limited.json(); throw Object.assign(new Error(j.message), { status: 429, code: 'rate_limited' }); }
           const r = await sendEmail(env, msg || {}, who);

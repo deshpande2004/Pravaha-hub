@@ -1,12 +1,12 @@
 /*
  * Offline support for the app shell. Data never goes through here: records
- * come from Pravahaxhub and are cached by the app itself in IndexedDB.
+ * come from Pravahax Suite and are cached by the app itself in IndexedDB.
  *
  * - Page loads: network first, falling back to the cached shell offline.
  * - Hashed build assets: cache first (their names change with every build).
  * - Other same-origin files (icons, manifest): stale while revalidate.
- * - The Pravahaxhub SDK: network first, with a copy for starting offline.
- * - Other cross-origin requests (Pravahaxhub's API) are never touched, and
+ * - The Pravahax Suite SDK: network first, with a copy for starting offline.
+ * - Other cross-origin requests (Pravahax Suite's API) are never touched, and
  *   neither is the team worker source, which owners deploy from here.
  */
 const SDK = '../../everything-core.js';

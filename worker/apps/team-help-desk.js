@@ -38,7 +38,7 @@ export default function install(router, me, ehub) {
 	* a prefix listing reads exactly one collection:
 	*
 	*   meta                  desk settings (name, portal, email, owner)
-	*   members               agents by Pravahaxhub uuid (one small document)
+	*   members               agents by Pravahax Suite uuid (one small document)
 	*   cfg:<kind>            groups, macros, views, fields, triggers, sla, kb
 	*   seq                   counters: { t: tickets, u: users, o: orgs, a: articles }
 	*   rev                   change counter, bumped on every write
@@ -47,9 +47,9 @@ export default function install(router, me, ehub) {
 	*   e:<id>:<n>            ticket event: comment, note or field change
 	*   u:<id>                customer (end user)
 	*   ue:<email>            customer id by email
-	*   uu:<uuid>             customer id by Pravahaxhub account
+	*   uu:<uuid>             customer id by Pravahax Suite account
 	*   rt:<user>:<ticket>    tickets by requester
-	*   ps:<uuid>:<ticket>    tickets a signed-in Pravahaxhub account sent from the help center
+	*   ps:<uuid>:<ticket>    tickets a signed-in Pravahax Suite account sent from the help center
 	*   o:<id>                organization
 	*   od:<domain>           organization id by email domain
 	*   k:<id>                knowledge base article (summary, listed)
@@ -113,7 +113,7 @@ export default function install(router, me, ehub) {
 	* The help desk's domain vocabulary, shared by the worker and the app:
 	* ticket statuses, priorities, types, channels and roles, plus the
 	* normalizers that turn untrusted input into well-formed records. Everything
-	* here is pure so it runs the same in a browser, an Pravahaxhub worker and tests.
+	* here is pure so it runs the same in a browser, an Pravahax Suite worker and tests.
 	*/
 	var STATUSES = [
 		"new",
@@ -500,7 +500,7 @@ export default function install(router, me, ehub) {
 	//#endregion
 	//#region src/server/http.js
 	/**
-	* A tiny route table that both the Pravahaxhub worker and the in-browser backend
+	* A tiny route table that both the Pravahax Suite worker and the in-browser backend
 	* dispatch through. Handlers receive a context and return plain data (sent
 	* as JSON) or a Response; they signal failure by throwing HttpError.
 	*/
@@ -595,7 +595,7 @@ export default function install(router, me, ehub) {
 			status: 402,
 			body: {
 				error: "insufficient_funds",
-				message: "The help desk owner has run out of Pravahaxhub usage credit."
+				message: "The help desk owner has run out of Pravahax Suite usage credit."
 			}
 		};
 		return {
@@ -642,7 +642,7 @@ export default function install(router, me, ehub) {
 	//#endregion
 	//#region src/server/store.js
 	/**
-	* Key-value helpers for the backend. They wrap the Pravahaxhub KV API the backend
+	* Key-value helpers for the backend. They wrap the Pravahax Suite KV API the backend
 	* is handed (the worker owner's `me.ehub.kv`, or the signed-in user's
 	* `ehub.kv` when the desk runs in the browser) with the access patterns the
 	* help desk needs: batched reads, paged prefix scans, and the commit that
@@ -2244,7 +2244,7 @@ export default function install(router, me, ehub) {
 	//#region src/server/email.js
 	/**
 	* Turning received email into tickets. The owner's browser reads their
-	* Pravahaxhub mailbox and hands each new message to the import route; this module
+	* Pravahax Suite mailbox and hands each new message to the import route; this module
 	* decides whether it continues an existing request (the subject carries
 	* the request number, as every notification email does) or starts a new one.
 	*/
@@ -2302,9 +2302,9 @@ export default function install(router, me, ehub) {
 	//#region src/server/backend.js
 	/**
 	* The help desk backend: every route the app and the help center call. It
-	* is written against small injected services (an Pravahaxhub KV store, a file
+	* is written against small injected services (an Pravahax Suite KV store, a file
 	* store, an email sender and an identity lookup) so the same code runs in
-	* three places: the Pravahaxhub worker an owner deploys, the owner's own browser
+	* three places: the Pravahax Suite worker an owner deploys, the owner's own browser
 	* before any worker exists, and the tests.
 	*/
 	var SWEEP_EVERY = 36e5;
@@ -2336,7 +2336,7 @@ export default function install(router, me, ehub) {
 		const articleCache = /* @__PURE__ */ new Map();
 		async function identity(req) {
 			const who = await req.who?.();
-			if (!who || !who.uuid) fail(401, "unauthorized", "Sign in with Pravahaxhub to continue");
+			if (!who || !who.uuid) fail(401, "unauthorized", "Sign in with Pravahax Suite to continue");
 			return who;
 		}
 		function deskId(value) {
@@ -2906,7 +2906,7 @@ export default function install(router, me, ehub) {
 			return { viewers: (await store.page(c.K.presencePrefix(id), { limit: 50 })).items.map((i) => i.value).filter((v) => v && v.uuid !== c.who.uuid && now - v.at < 45e3) };
 		});
 		/**
-		* Received email, read from the owner's Pravahaxhub mailbox by their browser.
+		* Received email, read from the owner's Pravahax Suite mailbox by their browser.
 		* A message whose subject carries a request number continues that request
 		* when it comes from its requester or a CC; anything else opens a new one.
 		* Each message is imported once.
@@ -3535,7 +3535,7 @@ export default function install(router, me, ehub) {
 				}
 			};
 		}
-		/** The requester behind a help center call: a link key or their Pravahaxhub account. */
+		/** The requester behind a help center call: a link key or their Pravahax Suite account. */
 		async function requestAccess(req, p, id) {
 			const ticket = await store.get(p.K.ticket(id));
 			if (!ticket || ticket.deleted || ticket.spam) fail(404, "not_found", "We could not find that request");
@@ -3830,13 +3830,13 @@ export default function install(router, me, ehub) {
 	//#endregion
 	//#region worker/index.js
 	/**
-	* Pravahaxhub worker entry. Each help desk owner deploys this bundle into their own
-	* Pravahaxhub account (the app does it for them), so the desk's data lives in the
+	* Pravahax Suite worker entry. Each help desk owner deploys this bundle into their own
+	* Pravahax Suite account (the app does it for them), so the desk's data lives in the
 	* owner's key-value store and files, and every agent and help center visitor
 	* reaches it through this worker.
 	*
 	* The runtime provides two globals: `router`, to register routes, and `me`,
-	* the owner's Pravahaxhub context (available inside handlers only).
+	* the owner's Pravahax Suite context (available inside handlers only).
 	*/
 	var BUILD = {
 		id: "95fbd3deecaf",
@@ -3866,7 +3866,7 @@ export default function install(router, me, ehub) {
 		});
 		return backend;
 	}
-	/** Who is calling, from the Pravahaxhub session ehub.workers.exec() attaches. */
+	/** Who is calling, from the Pravahax Suite session ehub.workers.exec() attaches. */
 	async function identify(user) {
 		if (!user || !user.ehub) return null;
 		const token = user.ehub.authToken;
@@ -3931,7 +3931,7 @@ export default function install(router, me, ehub) {
 			if (method === "POST" && /\/files$/.test(url.pathname)) {
 				if (!user || !user.ehub) return json(401, {
 					error: "unauthorized",
-					message: "Sign in with Pravahaxhub to continue"
+					message: "Sign in with Pravahax Suite to continue"
 				});
 				const bytes = await readBody(request, FILE_LIMIT);
 				if (!bytes) return json(413, {

@@ -1,11 +1,11 @@
 /*
  * Offline support for the app shell. Data never goes through here: records
- * come from Pravahaxhub and are cached by the app itself in IndexedDB.
+ * come from Pravahax Suite and are cached by the app itself in IndexedDB.
  *
  * - Page loads: network first, falling back to the cached shell offline.
  * - Hashed build assets: cache first (their names change with every build).
  * - Other same-origin files (icons, manifest): stale while revalidate.
- * - Cross-origin requests (Pravahaxhub's API and SDK) and the team server's
+ * - Cross-origin requests (Pravahax Suite's API and SDK) and the team server's
  *   source are never touched.
  */
 const CACHE = 'property-management-v1';

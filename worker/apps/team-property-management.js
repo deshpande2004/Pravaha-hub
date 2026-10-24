@@ -3,10 +3,10 @@ export default function install(router, me, ehub) {
 // property-management-team-worker build=5
 /**
  * Team access for Property Management: one worker per business, running in the
- * business owner's own Pravahaxhub account (the app deploys it there with
+ * business owner's own Pravahax Suite account (the app deploys it there with
  * ehub.workers.create). Its KV is the business's shared database, so the
  * owner pays for and owns the data; team members reach it through
- * ehub.workers.exec(), which forwards their own Pravahaxhub session.
+ * ehub.workers.exec(), which forwards their own Pravahax Suite session.
  *
  * The key layout is the same one the app uses in a single-user account
  * (pm1:r:<collection>:<id>, pm1:meta, pm1:seq, pm1:settings), so the app's
@@ -334,7 +334,7 @@ router.post('/api', async (ctx) => {
   }
   const op = body && typeof body.op === 'string' ? body.op : '';
   const c = await caller(ctx);
-  if (!c) return fail(401, 'sign_in_required', 'Sign in to Pravahaxhub to continue.');
+  if (!c) return fail(401, 'sign_in_required', 'Sign in to Pravahax Suite to continue.');
   if (c.unavailable) return fail(503, 'temporarily_unavailable', 'The team server is busy. Try again in a moment.');
   if (op === 'join') return join(ctx, c, body);
   if (!c.role) return fail(403, 'not_a_member', 'You are not a member of this business.');

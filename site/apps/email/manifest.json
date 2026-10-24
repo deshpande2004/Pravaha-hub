@@ -1,7 +1,7 @@
 {
-  "name": "Pravahaxhub Mail",
-  "short_name": "Pravahaxhub Mail",
-  "description": "A fast, private email client for your Pravahaxhub account.",
+  "name": "Pravahax Suite Mail",
+  "short_name": "Pravahax Suite Mail",
+  "description": "A fast, private email client for your Pravahax Suite account.",
   "lang": "en",
   "dir": "ltr",
   "categories": ["productivity", "utilities"],

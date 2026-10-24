@@ -2,7 +2,7 @@ const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./index-Co4NJiJb.js","
 import{fT as C,f as k,c as S,_ as D,a as I,fU as L,ad as F}from"./index-Co4NJiJb.js";import{fV as he,fW as be}from"./index-Co4NJiJb.js";import{canEncodeAvif as T,fitSize as _}from"./encode-Bqi5NNtU.js";import{d as j,o as B}from"./open-BPMFjDxg.js";import{l as P,b as q,f as M,j as N,a as z,n as R,d as H}from"./pipeline-VINJIlB1.js";import{pickCloudFiles as U}from"./cloud-jWnRa-OD.js";import{zipStore as W,uniqueName as O}from"./zip-BegHlIFd.js";import{saveToCloudFolder as V}from"./layers-export-CNw8d1x3.js";import{r as G}from"./png-B_sZsszD.js";import"./jpeg-markers-nOufrlvd.js";import"./pako.esm-BPYXWZ7A.js";import"./bytes--DnyINbG.js";import"./tiff-BD3mQ82J.js";import"./color-sESmWvGx.js";import"./resample-Ca-hka_Z.js";import"./apng-DIwcBNKb.js";const A=["jpeg","png","webp","avif","tiff","bmp","tga","gif"];async function pe(s,l){const a=P(),m=await T(),r=[],i=document.createElement("dialog");i.className="files-dialog files-processor",i.setAttribute("aria-label",l?"Batch":"Image Processor");const h=[...C.values()],b=A.includes(a.format)&&(a.format!=="avif"||m)?a.format:"jpeg";i.innerHTML=`<form method="dialog">
     <h2>${l?"Batch":"Image Processor"}</h2>
     <section class="processor-step"><h3><span>1</span>Select images</h3>
-      <div class="processor-buttons"><button type="button" data-act="local">Add from this device…</button><button type="button" data-act="cloud">Add from Pravahaxhub…</button>${s.sessions.some(n=>n.hasDocument)?'<button type="button" data-act="open">Add open documents</button>':""}<button type="button" data-act="clear">Clear</button></div>
+      <div class="processor-buttons"><button type="button" data-act="local">Add from this device…</button><button type="button" data-act="cloud">Add from Pravahax Suite…</button>${s.sessions.some(n=>n.hasDocument)?'<button type="button" data-act="open">Add open documents</button>':""}<button type="button" data-act="clear">Clear</button></div>
       <ul class="processor-list" aria-label="Images to process"></ul>
     </section>
     <section class="processor-step"><h3><span>2</span>Resize</h3>
@@ -17,7 +17,7 @@ import{fT as C,f as k,c as S,_ as D,a as I,fU as L,ad as F}from"./index-Co4NJiJb
     </section>
     ${h.length?`<section class="processor-step"><h3><span>4</span>Steps</h3>${h.map(n=>`<label class="dialog-field checkbox-field">${S(n.label)}<input type="checkbox" name="step:${S(n.id)}" ${l?"checked":""}></label>`).join("")}</section>`:""}
     <section class="processor-step"><h3><span>${h.length?5:4}</span>Save</h3>
-      <label class="dialog-field">Destination<select name="dest"><option value="zip">Download as ZIP archive</option><option value="ehub">Save to an Pravahaxhub folder…</option></select></label>
+      <label class="dialog-field">Destination<select name="dest"><option value="zip">Download as ZIP archive</option><option value="ehub">Save to an Pravahax Suite folder…</option></select></label>
     </section>
     <p class="processor-status" aria-live="polite"></p>
     <div class="dialog-actions"><button type="button" data-act="cancel">Cancel</button><button type="submit" class="primary" disabled>Run</button></div>

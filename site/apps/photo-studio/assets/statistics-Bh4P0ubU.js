@@ -3,7 +3,7 @@ import{e2 as S,c as h,_ as A,e3 as g,e1 as L}from"./index-Co4NJiJb.js";/* empty 
     <h2>Statistics</h2>
     <p class="muted">Each pixel of the result is a statistic of the same pixel across the images. The images stay inside an embedded object, so the mode can be changed later from Layer → Embedded Objects → Stack Mode.</p>
     <section class="processor-step"><h3><span>1</span>Images</h3>
-      <div class="processor-buttons"><button type="button" data-act="local" title="Choose image files on this device">Add from this device…</button><button type="button" data-act="cloud" title="Choose image files on Pravahaxhub">Add from Pravahaxhub…</button>${c.sessions.some(a=>a.hasDocument)?'<button type="button" data-act="open" title="Use the documents open in Photo Studio">Add open documents</button>':""}<button type="button" data-act="clear" title="Remove every image from the list">Clear</button></div>
+      <div class="processor-buttons"><button type="button" data-act="local" title="Choose image files on this device">Add from this device…</button><button type="button" data-act="cloud" title="Choose image files on Pravahax Suite">Add from Pravahax Suite…</button>${c.sessions.some(a=>a.hasDocument)?'<button type="button" data-act="open" title="Use the documents open in Photo Studio">Add open documents</button>':""}<button type="button" data-act="clear" title="Remove every image from the list">Clear</button></div>
       <ul class="processor-list" aria-label="Images to combine"></ul>
     </section>
     <section class="processor-step"><h3><span>2</span>Combine</h3>

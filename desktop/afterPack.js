@@ -1,9 +1,9 @@
-// Embeds the Pravahaxhub icon and version info into Pravahaxhub.exe without wine (pure JS via resedit).
+// Embeds the Pravahax Suite icon and version info into PravahaxSuite.exe without wine (pure JS via resedit).
 const fs = require('fs'); const path = require('path');
 exports.default = async function (ctx) {
   if (ctx.electronPlatformName !== 'win32') return;
   const ResEdit = require('resedit');
-  const exe = path.join(ctx.appOutDir, `${ctx.packager.appInfo.productFilename}.exe`);
+  const exe = path.join(ctx.appOutDir, `${ctx.packager.executableName || ctx.packager.appInfo.productFilename}.exe`);
   const data = fs.readFileSync(exe);
   const pe = ResEdit.NtExecutable.from(data, { ignoreCert: true });
   const res = ResEdit.NtExecutableResource.from(pe);
@@ -12,7 +12,7 @@ exports.default = async function (ctx) {
   const vi = ResEdit.Resource.VersionInfo.fromEntries(res.entries)[0];
   const v = ctx.packager.appInfo.version.split('.').map(Number);
   vi.setFileVersion(v[0], v[1], v[2], 0, 1033); vi.setProductVersion(v[0], v[1], v[2], 0, 1033);
-  vi.setStringValues({ lang: 1033, codepage: 1200 }, { ProductName: 'Pravahaxhub', FileDescription: 'Pravahaxhub', CompanyName: 'Pravahaxhub', OriginalFilename: 'Pravahaxhub.exe', InternalName: 'Pravahaxhub', LegalCopyright: 'MIT' });
+  vi.setStringValues({ lang: 1033, codepage: 1200 }, { ProductName: 'Pravahax Suite', FileDescription: 'Pravahax Suite', CompanyName: 'Pravahax Suite', OriginalFilename: 'PravahaxSuite.exe', InternalName: 'Pravahax Suite', LegalCopyright: 'MIT' });
   vi.outputToResourceEntries(res.entries);
   res.outputResource(pe);
   fs.writeFileSync(exe, Buffer.from(pe.generate()));

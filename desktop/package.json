@@ -1,9 +1,9 @@
 {
-  "name": "pravahaxhub",
-  "productName": "Pravahaxhub",
-  "version": "1.1.1",
-  "description": "Pravahaxhub desktop app for Windows",
-  "author": "Pravahaxhub",
+  "name": "pravahaxsuite",
+  "productName": "Pravahax Suite",
+  "version": "1.2.0",
+  "description": "Pravahax Suite desktop app for Windows",
+  "author": "Pravahax Suite",
   "license": "MIT",
   "main": "main.js",
   "scripts": {
@@ -17,8 +17,9 @@
     "png-to-ico": "^2.1.8"
   },
   "build": {
-    "appId": "com.pravahaxhub.desktop",
-    "productName": "Pravahaxhub",
+    "appId": "com.pravahaxsuite.desktop",
+    "win": { "executableName": "PravahaxSuite" },
+    "productName": "Pravahax Suite",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -33,17 +34,17 @@
     "win": {
       "icon": "build/icon.ico",
       "signAndEditExecutable": false,
-      "artifactName": "Pravahaxhub-${version}-${arch}.${ext}"
+      "artifactName": "PravahaxSuite-${version}-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Pravahaxhub",
+      "shortcutName": "Pravahax Suite",
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
-      "artifactName": "Pravahaxhub-Setup-${version}.${ext}",
+      "artifactName": "PravahaxSuite-Setup-${version}.${ext}",
       "warningsAsErrors": false,
       "installerLanguages": [
         "en_US"
@@ -51,7 +52,7 @@
       "multiLanguageInstaller": false
     },
     "portable": {
-      "artifactName": "Pravahaxhub-Portable-${version}.${ext}"
+      "artifactName": "PravahaxSuite-Portable-${version}.${ext}"
     },
     "electronLanguages": [
       "en-US"
@@ -70,7 +71,7 @@
       "icon": "build/icon.png",
       "category": "public.app-category.productivity",
       "identity": null,
-      "artifactName": "Pravahaxhub-${version}-mac-${arch}.${ext}"
+      "artifactName": "PravahaxSuite-${version}-mac-${arch}.${ext}"
     }
   }
 }

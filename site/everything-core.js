@@ -1,5 +1,5 @@
 /*!
- * everything-core.js — the Pravahaxhub app engine (window.ehub). EHUB_ONLINE_ENGINE
+ * everything-core.js — the Pravahax Suite app engine (window.ehub). EHUB_ONLINE_ENGINE
  *
  * Load it with a plain (non-module, non-deferred) <script> before any app code:
  *   <script src="../../everything-core.js"></script>
@@ -155,7 +155,7 @@
     return r;
   }
   function refusedResponse(u) {
-    return new Response(JSON.stringify({ success: false, error: { code: 'unavailable', message: 'That service is not part of Pravahaxhub.' } }),
+    return new Response(JSON.stringify({ success: false, error: { code: 'unavailable', message: 'That service is not part of Pravahax Suite.' } }),
       { status: 503, statusText: 'Unavailable', headers: { 'content-type': 'application/json' } });
   }
   var nativeFetch = window.fetch ? window.fetch.bind(window) : null;
@@ -520,7 +520,7 @@
     async exists(path) { try { await fs.stat(path); return true; } catch (e) { return false; } },
     // Sharing has no meaning on a single-device drive: answer as an unshared file.
     // Files on this drive live only in this browser; there is no per-person sharing. Fail clearly instead of pretending.
-    async share(path) { await fs.stat(path); throw err('not_supported', 'Sharing a file with another person isn\u2019t available on Pravahaxhub yet. Download or export a copy and send it instead.'); },
+    async share(path) { await fs.stat(path); throw err('not_supported', 'Sharing a file with another person isn\u2019t available on Pravahax Suite yet. Download or export a copy and send it instead.'); },
     async unshare() { return { revoked: 0 }; },
     async getShares() { return []; },
     async listShared() { return { items: [] }; },
@@ -744,7 +744,7 @@
   };
 
   /* ---------------------------------------------------------------------- ai */
-  var AI_OFF = 'AI is unavailable right now — try again shortly, or add your own key in Pravahaxhub settings';
+  var AI_OFF = 'AI is unavailable right now — try again shortly, or add your own key in Pravahax Suite settings';
   function aiConfig() {
     try { var c = JSON.parse(LS.getItem('everything:ai') || 'null'); if (c && c.endpoint && (c.apiKey || /localhost|127\.0\.0\.1/.test(c.endpoint))) return c; } catch (e) {}
     if (!ONLINE) return null;
@@ -773,7 +773,7 @@
       images.forEach(function (u) { parts.push({ type: 'image_url', image_url: { url: u } }); });
       last.content = parts;
     }
-    // Pravahaxhub accepts a few extra part shapes; map them to OpenAI's.
+    // Pravahax Suite accepts a few extra part shapes; map them to OpenAI's.
     return msgs.map(function (m) {
       if (!Array.isArray(m.content)) return m;
       return Object.assign({}, m, { content: m.content.map(function (p) {
@@ -849,7 +849,7 @@
   var ai = {
     async chat() {
       var a = parseChatArgs(arguments);
-      if (a.opts.testMode === true) return chatResult({ content: 'Test mode reply from Pravahaxhub (local).' });
+      if (a.opts.testMode === true) return chatResult({ content: 'Test mode reply from Pravahax Suite (local).' });
       var c = aiConfig();
       if (!c) throw aiOff();
       var body = { model: (a.opts.model && (c.allowModelOverride || (c.builtin && /^@cf\//.test(a.opts.model))) ? a.opts.model : c.model) || 'gpt-4o-mini', messages: normMessages(a.prompt, a.images) };
@@ -915,7 +915,7 @@
     async listModelProviders() { return aiConfig() ? ['local'] : []; },
   };
   ai.speech = ai.txt2speech;
-  ai.txt2vid = async function () { throw err('not_supported', 'Video generation is not available in Pravahaxhub.'); };
+  ai.txt2vid = async function () { throw err('not_supported', 'Video generation is not available in Pravahax Suite.'); };
 
   /* ------------------------------------------------------------------- email */
   var OUTBOX = 'everything:outbox';
@@ -962,8 +962,8 @@
       if (ONLINE) {
         try {
           var r = await apiFetch(ORIGIN + '/api/w/' + encodeURIComponent(APP) + '/' + n + '/__deploy', { method: 'POST', headers: { 'x-ehub-auth': AUTH_TOKEN } });
-          if (!r.ok) { var j = await r.json().catch(function () { return {}; }); return { success: false, name: n, errors: [j.message || 'This app has no team server on Pravahaxhub.'] }; }
-        } catch (e) { return { success: false, name: n, errors: ['Could not reach the Pravahaxhub server.'] }; }
+          if (!r.ok) { var j = await r.json().catch(function () { return {}; }); return { success: false, name: n, errors: [j.message || 'This app has no team server on Pravahax Suite.'] }; }
+        } catch (e) { return { success: false, name: n, errors: ['Could not reach the Pravahax Suite server.'] }; }
       }
       return { success: true, name: n, url: all[n].url, file_path: all[n].file_path, errors: [] };
     },
@@ -1301,7 +1301,7 @@
         if (!n) { if (el) el.remove(); return; }
         if (!el) {
           el = document.createElement('div'); el.id = 'ehub-relay-badge'; el.setAttribute('role', 'status');
-          el.title = 'No direct media path could be made from this network, so audio and video go through the Pravahaxhub server. Quality is reduced.';
+          el.title = 'No direct media path could be made from this network, so audio and video go through the Pravahax Suite server. Quality is reduced.';
           el.style.cssText = 'position:fixed;left:8px;top:max(8px,env(safe-area-inset-top));z-index:2147483646;padding:2px 9px;border-radius:999px;background:rgba(20,20,24,.72);color:#fff;font:600 11px/1.7 system-ui,-apple-system,sans-serif;pointer-events:none;letter-spacing:.2px;opacity:.9';
           (document.body || document.documentElement).appendChild(el);
         }
@@ -2042,7 +2042,7 @@
   var auth = {
     isSignedIn: function () { return true; },
     async signIn() { return Object.assign({}, USER); },
-    signOut: function () { post('toast', { message: 'Pravahaxhub keeps you signed in on this device.' }); return Promise.resolve(); },
+    signOut: function () { post('toast', { message: 'Pravahax Suite keeps you signed in on this device.' }); return Promise.resolve(); },
     async getUser() { return Object.assign({}, USER); },
     async whoami() { return Object.assign({}, USER); },
     async getProfilePicture() { return null; },
@@ -2157,7 +2157,7 @@
     if (n && !n.is_dir) { try { if (await sameBytes(await fs.read(p), file)) return toItem(n); } catch (e) {} }
     return fs.write(p, file, { dedupeName: !!n });
   }
-  /* ---- Pravahaxhub storage: names, locations, the Save / Open dialogs and device downloads ---- */
+  /* ---- Pravahax Suite storage: names, locations, the Save / Open dialogs and device downloads ---- */
   var EXT_BY_TYPE = {
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx', 'application/vnd.ms-excel': 'xls',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx', 'application/msword': 'doc',
@@ -2189,12 +2189,12 @@
     document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
     return a.download;
   }
-  // "/me/AppData/spreadsheet/Spreadsheets/Budget.xlsx" -> "Pravahaxhub › Spreadsheets › Budget.xlsx"
+  // "/me/AppData/spreadsheet/Spreadsheets/Budget.xlsx" -> "Pravahax Suite › Spreadsheets › Budget.xlsx"
   function hubLocation(path) {
     var segs = normPath(path).split('/').filter(Boolean);
     if (segs[0] === USERNAME) segs.shift();
     if (segs[0] === 'AppData' && segs.length > 2) segs = segs.slice(2);
-    return ['Pravahaxhub'].concat(segs).join(' \u203a ');
+    return ['Pravahax Suite'].concat(segs).join(' \u203a ');
   }
   function hubSavedText(path) { return 'Saved to ' + hubLocation(path) + ' (stored in this browser)'; }
   // Ask the browser to keep this site's storage (not evict it under pressure). Best effort; never throws.
@@ -2217,19 +2217,19 @@
     setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 300); }, 5000);
   }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-  // The Pravahaxhub Save dialog: name field (suggesting the document title), where it goes, and that it stays in this browser.
+  // The Pravahax Suite Save dialog: name field (suggesting the document title), where it goes, and that it stays in this browser.
   function saveDialog(o) {
     ensureStyle();
     o = o || {};
     return new Promise(function (resolve) {
-      var s = el('div', 'ev-ui ev-scrim'); var d = el('form', 'ev-dialog ev-save'); d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', o.title || 'Save to Pravahaxhub');
-      d.appendChild(el('h3', 'ev-h', o.title || 'Save to Pravahaxhub'));
+      var s = el('div', 'ev-ui ev-scrim'); var d = el('form', 'ev-dialog ev-save'); d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', o.title || 'Save to Pravahax Suite');
+      d.appendChild(el('h3', 'ev-h', o.title || 'Save to Pravahax Suite'));
       var lab = el('label', 'ev-lab', 'File name'); var row = el('div', 'ev-name');
       var input = el('input'); input.type = 'text'; input.value = o.name || ''; input.setAttribute('aria-label', 'File name'); input.autocomplete = 'off'; input.spellcheck = false;
       row.appendChild(input); if (o.ext) row.appendChild(el('span', 'ev-ext', o.ext)); lab.appendChild(row); d.appendChild(lab);
       var errp = el('p', 'ev-err'); errp.hidden = true; d.appendChild(errp);
-      d.appendChild(el('p', 'ev-where', 'Saves to ' + (o.location || 'Pravahaxhub \u203a Documents')));
-      d.appendChild(el('p', 'ev-note', 'Stored in this browser on this device, not uploaded. Find it any time in Files on the Pravahaxhub home screen. Use Download to keep a copy on your device.'));
+      d.appendChild(el('p', 'ev-where', 'Saves to ' + (o.location || 'Pravahax Suite \u203a Documents')));
+      d.appendChild(el('p', 'ev-note', 'Stored in this browser on this device, not uploaded. Find it any time in Files on the Pravahax Suite home screen. Use Download to keep a copy on your device.'));
       var bar = el('div', 'ev-row');
       var cancel = el('button', '', 'Cancel'); cancel.type = 'button'; var ok = el('button', 'primary', o.confirm || 'Save'); ok.type = 'submit';
       bar.appendChild(cancel); bar.appendChild(ok); d.appendChild(bar); s.appendChild(d); document.body.appendChild(s);
@@ -2248,7 +2248,7 @@
       setTimeout(function () { input.focus(); input.select(); }, 0);
     });
   }
-  // The Pravahaxhub Open dialog: files saved in this browser (newest first), filtered to what the app opens, plus "From this device…".
+  // The Pravahax Suite Open dialog: files saved in this browser (newest first), filtered to what the app opens, plus "From this device…".
   function acceptList(acc) {
     if (!acc) return [];
     if (typeof acc === 'string') acc = acc.split(',');
@@ -2271,8 +2271,8 @@
     return new Promise(async function (resolve) {
       var acc = acceptList(o.accept), files = [];
       try { files = (await hubFiles(acc)).filter(function (n) { return acc.length || !/\.json$/i.test(n.name) || n.path.indexOf(HOME + '/AppData/') !== 0; }); } catch (e) {}
-      var s = el('div', 'ev-ui ev-scrim'); var d = el('div', 'ev-dialog ev-open'); d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Open from Pravahaxhub');
-      d.appendChild(el('h3', 'ev-h', 'Open from Pravahaxhub'));
+      var s = el('div', 'ev-ui ev-scrim'); var d = el('div', 'ev-dialog ev-open'); d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Open from Pravahax Suite');
+      d.appendChild(el('h3', 'ev-h', 'Open from Pravahax Suite'));
       d.appendChild(el('p', 'ev-note', 'Files you saved in this browser, newest first.'));
       var q = el('input'); q.type = 'search'; q.placeholder = 'Search saved files'; q.setAttribute('aria-label', 'Search saved files'); d.appendChild(q);
       var list = el('div', 'ev-list'); list.setAttribute('role', 'listbox'); d.appendChild(list);
@@ -2294,7 +2294,7 @@
         shown.forEach(function (n) {
           var b = el('button', 'ev-file'); b.type = 'button'; b.setAttribute('role', 'option');
           b.appendChild(el('b', '', n.name));
-          var where = hubLocation(dirname(n.path)).replace(/^Pravahaxhub( \u203a )?/, '') || 'Pravahaxhub';
+          var where = hubLocation(dirname(n.path)).replace(/^Pravahax Suite( \u203a )?/, '') || 'Pravahax Suite';
           b.appendChild(el('small', '', where + ' \u00b7 ' + fmtSize(n.size || 0) + ' \u00b7 ' + new Date((n.modified || 0) * 1000).toLocaleString()));
           b.onclick = function () { finish(n); };
           list.appendChild(b);
@@ -2318,7 +2318,7 @@
   var launchHandlers = [], closeHandler = null, msgHandlers = [], hubAsked = Object.create(null), hubAskedObj = new WeakSet();
   var ui = {
     env: 'web',
-    // Opens files saved in Pravahaxhub (this browser); "From this device…" imports a file from the device instead.
+    // Opens files saved in Pravahax Suite (this browser); "From this device…" imports a file from the device instead.
     async showOpenFilePicker(opts) {
       opts = opts || {};
       if (opts.device || opts.fromDevice) return pickFromDevice(opts);
@@ -2343,7 +2343,7 @@
         return opts.multiple ? [dir] : dir;
       } catch (e) { throw e; }
     },
-    // Save goes into Pravahaxhub storage (this browser) through the Hub Save dialog. It never opens the
+    // Save goes into Pravahax Suite storage (this browser) through the Hub Save dialog. It never opens the
     // operating system's save dialog and never downloads a copy behind the user's back: Download does that.
     async showSaveFilePicker(content, suggestedName, opts) {
       if (typeof content === 'string' && suggestedName === undefined && /\.[a-z0-9]{1,6}$/i.test(content) && content.length < 200) { suggestedName = content; content = undefined; }
@@ -2366,7 +2366,7 @@
       if (blob) { askPersist(); if (!opts.quiet) toastLocal(hubSavedText(item.path), item.path); }
       return item;
     },
-    // Pravahaxhub helpers for apps: where a file lives, the "Saved to …" message, the name prompt for a first save, device downloads.
+    // Pravahax Suite helpers for apps: where a file lives, the "Saved to …" message, the name prompt for a first save, device downloads.
     hubLocation: function (path) { return hubLocation(path); },
     hubSavedText: function (path) { return hubSavedText(path); },
     hubSaved: function (path) { askPersist(); toastLocal(hubSavedText(path), normPath(path)); return hubSavedText(path); },

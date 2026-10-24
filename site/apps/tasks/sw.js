@@ -6,8 +6,8 @@
  * Strategy: precache the app shell at install; serve navigations from the
  * cached shell (hash-routing means every route is index.html); cache-first
  * for same-origin static assets (they carry content hashes); and
- * stale-while-revalidate for the Pravahaxhub SDK script so the app can boot
- * offline. Everything else — Pravahaxhub API calls, share snapshot fetches —
+ * stale-while-revalidate for the Pravahax Suite SDK script so the app can boot
+ * offline. Everything else — Pravahax Suite API calls, share snapshot fetches —
  * goes straight to the network.
  */
 
@@ -85,7 +85,7 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // The Pravahaxhub SDK: serve the cached copy immediately; re-fetch it in the
+  // The Pravahax Suite SDK: serve the cached copy immediately; re-fetch it in the
   // background only once the copy is older than SDK_TTL. With nothing
   // cached yet, even an unverifiable opaque copy beats no SDK at all.
   if (url.hostname === SDK_HOST) {

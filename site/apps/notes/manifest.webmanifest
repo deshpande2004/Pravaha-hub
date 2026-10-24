@@ -1,7 +1,7 @@
 {
   "name": "Notes",
   "short_name": "Notes",
-  "description": "A free-form digital notebook stored in your own Pravahaxhub storage.",
+  "description": "A free-form digital notebook stored in your own Pravahax Suite storage.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f5f5f5",

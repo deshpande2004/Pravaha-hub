@@ -12,7 +12,7 @@
 <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
-<title>Book a meeting — Pravahaxhub Calendar</title>
+<title>Book a meeting — Pravahax Suite Calendar</title>
 <style>
   :root { color-scheme: light dark;
     --bg: #f6f7f9; --card: #ffffff; --text: #1a1d21; --muted: #6b7280;
@@ -276,7 +276,7 @@
  * https://cal-<host>.ehub.work, rebuilt below — or from the worker's own
  * redirects (…ehub.work/book/<page> → /book.html#w=<worker>&p=<page>; a
  * manage link redirects with t=<token>). Everything below talks to that
- * worker's JSON API; the worker itself serves no HTML. Needs no Pravahaxhub sign-in
+ * worker's JSON API; the worker itself serves no HTML. Needs no Pravahax Suite sign-in
  * and no SDK.
  *
  * All data is rendered with textContent (never markup), POSTs are urlencoded
@@ -416,13 +416,13 @@
     return min + ' minutes';
   }
 
-  /** The value if it is exactly an Pravahaxhub Meetings room link, else '' — the only
+  /** The value if it is exactly an Pravahax Suite Meetings room link, else '' — the only
    *  URL this page will render clickable or write into the .ics (same shape
    *  test the worker applies before serving it). */
   function meetingUrlOf(booking) {
     var v = booking && booking.meetingUrl;
     if (typeof v !== 'string' || v.length > 100) return '';
-    return /^https:\/\/pravahax-hub\.countrypande1\.workers\.dev\/apps\/meetings\/#\/m\/(?:[a-z]{3}-[a-z]{4}-[a-z]{3}|[a-z]{4}-[a-z]{4}-[a-z]{4})$/.test(v)
+    return /^https:\/\/pravahax-suite\.countrypande1\.workers\.dev\/apps\/meetings\/#\/m\/(?:[a-z]{3}-[a-z]{4}-[a-z]{3}|[a-z]{4}-[a-z]{4}-[a-z]{4})$/.test(v)
       ? v : '';
   }
 
@@ -448,7 +448,7 @@
     // The worker mints hex booking ids; held to that shape (like meetingUrlOf
     // for URLs) so a rogue worker's id can't smuggle CRLF-joined ICS lines.
     var uid = /^[0-9a-f]{8,64}$/.test(String(booking.id)) ? booking.id : 'booking';
-    var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Pravahaxhub Calendar//Booking//EN',
+    var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Pravahax Suite Calendar//Booking//EN',
       'BEGIN:VEVENT', 'UID:' + uid + '@calendar.ehub.com', 'DTSTAMP:' + dt(Date.now()),
       'DTSTART:' + dt(booking.start), 'DTEND:' + dt(booking.end),
       'SUMMARY:' + esc(booking.title || 'Meeting')];
@@ -480,7 +480,7 @@
     var token = route ? '' : (params.get('t') || '');
 
     // This page must never become a relay to arbitrary origins: only https
-    // Pravahaxhub workers, and only well-formed ids/tokens, are ever contacted.
+    // Pravahax Suite workers, and only well-formed ids/tokens, are ever contacted.
     var workerOk = /^https:\/\/[a-z0-9][a-z0-9-]*\.ehub\.work$/.test(worker);
     if (!workerOk || (!PAGE_ID_RE.test(pageId) && !/^[0-9a-f]{40}$/.test(token))) {
       renderGone();
@@ -521,7 +521,7 @@
     function renderManage(data, notice) {
       var booking = data.booking || {};
       var page = data.page || null;
-      document.title = (booking.title || 'Booking') + ' — Pravahaxhub Calendar';
+      document.title = (booking.title || 'Booking') + ' — Pravahax Suite Calendar';
       root.replaceChildren();
       root.className = 'card';
       var pane = el('div', 'pane');
@@ -689,7 +689,7 @@
             page = data.page || {};
             serverSkew = isFinite(data.now) ? data.now - Date.now() : 0;
             minNoticeMs = Math.max(0, Number(page.minNoticeMin) || 0) * 60000;
-            document.title = (page.title || 'Book a meeting') + ' — Pravahaxhub Calendar';
+            document.title = (page.title || 'Book a meeting') + ' — Pravahax Suite Calendar';
             var today = monthOfKey(dayKey(nowMs(), tz));
             minMonthKey = monthKeyOf(today.y, today.m);
             var horizon = monthOfKey(dayKey(nowMs() + (page.maxAdvanceDays || 60) * DAY, tz));
@@ -1260,7 +1260,7 @@
       // showFail writes into nodes the replaceChildren below just detached.
       var hasTimes = isFinite(booking.start) && isFinite(booking.end);
       var manageUrl = data.token ? worker + '/booking/' + data.token : '';
-      document.title = 'Confirmed — Pravahaxhub Calendar';
+      document.title = 'Confirmed — Pravahax Suite Calendar';
       root.replaceChildren();
       root.className = 'card';
       var pane = el('div', 'pane');
@@ -1407,7 +1407,7 @@
       markImg.width = 18;
       markImg.height = 18;
       link.append(markImg);
-      link.append(document.createTextNode('Pravahaxhub Calendar'));
+      link.append(document.createTextNode('Pravahax Suite Calendar'));
       link.href = '#';
       link.rel = 'noopener';
       bar.append(link);

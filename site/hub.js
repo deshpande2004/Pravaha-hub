@@ -1,4 +1,4 @@
-/* Pravahaxhub — hub shell. No build step, no dependencies. */
+/* Pravahax Suite — hub shell. No build step, no dependencies. */
 (() => {
   'use strict';
 
@@ -361,7 +361,7 @@
     tabs.forEach((t) => t.el.classList.toggle('on', t.id === id));
     renderTabs();
     const t = tabs.find((x) => x.id === id);
-    document.title = `${t?.title || byId.get(id)?.name} · Pravahaxhub`;
+    document.title = `${t?.title || byId.get(id)?.name} · Pravahax Suite`;
     if (t && t.el.tagName === 'IFRAME') setTimeout(() => { try { t.el.contentWindow?.focus(); } catch {} }, 60);
   }
 
@@ -422,7 +422,7 @@
   }
   function goHome() {
     document.body.classList.remove('in-app');
-    document.title = 'Pravahaxhub';
+    document.title = 'Pravahax Suite';
     $('#dockHome').classList.add('on');
     renderHero(); renderRecents(); renderHomeFiles();
   }
@@ -494,7 +494,7 @@
           tab.title = String(d.title || '').trim() || byId.get(tab.id).name;
           state.titles[tab.id] = tab.title; save();
           renderTabs();
-          if (tab.id === activeId) document.title = `${tab.title} · Pravahaxhub`;
+          if (tab.id === activeId) document.title = `${tab.title} · Pravahax Suite`;
         }
         break;
       case 'exit': if (tab) closeTab(tab.id, true); break;
@@ -604,7 +604,7 @@
   }
 
 
-  /* ------------------------------------------- Files: what is saved in Pravahaxhub (this browser) */
+  /* ------------------------------------------- Files: what is saved in Pravahax Suite (this browser) */
   // Every app saves into one drive in this browser: IndexedDB "everything-drive", rooted at /me. This screen lists the
   // user's own files there (documents, spreadsheets, decks, PDFs, pictures…), not apps' internal data.
   const DOC_EXT = new Set(['docx', 'doc', 'odt', 'rtf', 'xlsx', 'xls', 'xlsm', 'csv', 'tsv', 'ods', 'pptx', 'ppt', 'odp', 'pdf', 'md', 'txt', 'html', 'htm', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'psd', 'mp3', 'wav', 'ogg', 'flac', 'mid', 'midi', 'mp4', 'webm', 'mov', 'stl', 'glb', 'gltf', 'obj', 'dxf', 'dwg', 'ics', 'vcf', 'zip']);
@@ -636,9 +636,9 @@
     let segs = String(path).split('/').filter(Boolean);
     if (segs[0] === 'me') segs.shift();
     if (segs[0] === 'AppData' && segs.length > 2) segs = segs.slice(2);
-    return ['Pravahaxhub', ...segs].join(' › ');
+    return ['Pravahax Suite', ...segs].join(' › ');
   }
-  const folderOf = (path) => hubLoc(parentOf(path)).replace(/^Pravahaxhub( › )?/, '') || 'Pravahaxhub';
+  const folderOf = (path) => hubLoc(parentOf(path)).replace(/^Pravahax Suite( › )?/, '') || 'Pravahax Suite';
   const hiddenPath = (p) => /\/\.[^/]*/.test(p) || /\/(Trash|node_modules|cache)(\/|$)/i.test(p);
   function isUserFile(n, all) {
     if (!n || n.is_dir || !String(n.path).startsWith('/me/') || hiddenPath(n.path)) return false;
@@ -717,7 +717,7 @@
     catch (e) { toast(e.message || 'Couldn’t download that file.'); }
   }
   async function deleteFlow(n) {
-    const ok = await modal({ title: `Delete “${n.name}”?`, text: 'It is removed from Pravahaxhub in this browser. This can’t be undone. Download it first if you want a copy on your device.', confirm: 'Delete', danger: true });
+    const ok = await modal({ title: `Delete “${n.name}”?`, text: 'It is removed from Pravahax Suite in this browser. This can’t be undone. Download it first if you want a copy on your device.', confirm: 'Delete', danger: true });
     if (!ok) return;
     try { await deleteDriveFile(n.path); toast(`Deleted “${n.name}”.`); refreshFiles(); }
     catch (e) { toast(e.message || 'Couldn’t delete that file.'); }
@@ -756,7 +756,7 @@
     try { const est = await navigator.storage?.estimate?.(); if (est) usage = ` About ${fmtBytes(est.usage || 0)} used.`; } catch {}
     let p = persistState;
     try { if (p == null && navigator.storage?.persisted) p = await navigator.storage.persisted(); } catch {}
-    el.replaceChildren(h('span', { html: p ? '<b>Kept safe:</b> this browser agreed not to clear Pravahaxhub’s storage on its own.' : '<b>Stored in this browser only.</b> Clearing site data (or the browser running very low on space) removes it, so download anything important.' }), usage);
+    el.replaceChildren(h('span', { html: p ? '<b>Kept safe:</b> this browser agreed not to clear Pravahax Suite’s storage on its own.' : '<b>Stored in this browser only.</b> Clearing site data (or the browser running very low on space) removes it, so download anything important.' }), usage);
   }
   let filesTimer = null;
   function refreshFiles() { clearTimeout(filesTimer); filesTimer = setTimeout(() => { if (isFilesOpen()) renderFilesView(); renderHomeFiles(); }, 120); }
@@ -773,7 +773,7 @@
   function showFiles() {
     $('#filesView').hidden = false; document.body.classList.add('in-files');
     $('#dockHome').classList.remove('on'); $('#dockFiles')?.classList.add('on');
-    document.title = 'Files · Pravahaxhub';
+    document.title = 'Files · Pravahax Suite';
     askPersist().then(storageLine);
     renderFilesView();
     setTimeout(() => { if (!mobile()) $('#filesQuery').focus({ preventScroll: true }); }, 60);
@@ -1038,7 +1038,7 @@
         d.stores.forEach((st) => { const os = db0.createObjectStore(st.name, { keyPath: st.keyPath ?? undefined, autoIncrement: !!st.autoIncrement }); (st.indexes || []).forEach((ix) => os.createIndex(ix.name, ix.keyPath, { unique: ix.unique, multiEntry: ix.multiEntry })); });
       };
       r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
-      r.onblocked = () => rej(new Error(`${d.name} is in use — close other Pravahaxhub tabs and try again`));
+      r.onblocked = () => rej(new Error(`${d.name} is in use — close other Pravahax Suite tabs and try again`));
     });
   }
   async function wipeStores() {
@@ -1101,7 +1101,7 @@
     try { head = await file.slice(0, 200).text(); } catch {}
     const v2 = /^\{"format":"everything-backup","version":2/.test(head);
     const v1 = !v2 && /"format"\s*:\s*"everything-backup"/.test(await file.slice(0, 4096).text().catch(() => ''));
-    if (!v1 && !v2) { toast('That file isn’t a Pravahaxhub backup.'); return; }
+    if (!v1 && !v2) { toast('That file isn’t a Pravahax Suite backup.'); return; }
     if (!confirm('Restore this backup? It replaces all apps’ data in this browser with the backup’s contents.')) return;
     toast('Restoring…', { timeout: 60000 });
     try {
@@ -1231,7 +1231,7 @@
     let deferred = null;
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; $('#installBtn').hidden = false; });
     $('#installBtn').addEventListener('click', async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice.catch(() => {}); deferred = null; $('#installBtn').hidden = true; });
-    window.addEventListener('appinstalled', () => toast('Installed. Pravahaxhub now lives on your home screen.'));
+    window.addEventListener('appinstalled', () => toast('Installed. Pravahax Suite now lives on your home screen.'));
     window.addEventListener('online', () => toast('Back online.'));
     window.addEventListener('offline', () => toast('You’re offline — apps you’ve opened before still work.'));
   }
@@ -1277,7 +1277,7 @@
       navigator.serviceWorker.addEventListener('message', (e) => { if (e.data?.type === 'ehub-sw-upgraded') reviveFrames(); });
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         reviveFrames();
-        if (hadController) toast('Pravahaxhub was updated. Reload to use the new version — open apps keep running until then.', { action: { label: 'Reload', run: () => location.reload() }, timeout: 20000 });
+        if (hadController) toast('Pravahax Suite was updated. Reload to use the new version — open apps keep running until then.', { action: { label: 'Reload', run: () => location.reload() }, timeout: 20000 });
         hadController = true;
       });
       const reg = () => navigator.serviceWorker.register('sw.js').then((r) => {

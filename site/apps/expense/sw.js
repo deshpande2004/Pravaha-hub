@@ -1,4 +1,4 @@
-/* Expenses service worker: app-shell caching. Pravahaxhub API calls are never cached. */
+/* Expenses service worker: app-shell caching. Pravahax Suite API calls are never cached. */
 const VERSION = 'expenses-v2';
 const SHELL_CACHE = `${VERSION}-shell`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;

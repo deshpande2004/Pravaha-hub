@@ -39,7 +39,7 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Never cache Pravahaxhub API calls, only the SDK script itself.
+  // Never cache Pravahax Suite API calls, only the SDK script itself.
   const isEhubSdk = url.origin === 'https://sdk.everything-hub.invalid/';
   const isApi = url.hostname.startsWith('api.') || url.pathname.startsWith('/drivers');
   if (!isEhubSdk && url.origin !== self.location.origin) return;
