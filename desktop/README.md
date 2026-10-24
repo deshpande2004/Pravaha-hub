@@ -1,6 +1,6 @@
 # Pravahahub for Windows
 
-A desktop wrapper (Electron) that opens https://pravaha-hub.countrypande1.workers.dev in its own window.
+A desktop wrapper (Electron) that opens https://pravahax-hub.countrypande1.workers.dev in its own window.
 
 Build:
 1. `npm install`
