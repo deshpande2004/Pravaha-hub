@@ -49,6 +49,7 @@
     bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 5 13.5h6L10.5 21 19 10h-6z"/></svg>',
     down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10.5 12 15.5l5-5M5 20h14"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>',
     compass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>',
   };
   const setIcon = (el, svg) => { if (el) el.innerHTML = svg; };
@@ -98,10 +99,13 @@
 
   /* ------------------------------------------------------------ usage */
   // Ask once for persistent storage so the browser doesn't evict app data under storage pressure.
-  let persistAsked = false;
+  let persistAsked = false, persistState = null; // null unknown, true kept, false best effort
   function askPersist() {
-    if (persistAsked || !navigator.storage?.persist) return; persistAsked = true;
-    navigator.storage.persisted().then((p) => p || navigator.storage.persist()).catch(() => {});
+    if (persistAsked || !navigator.storage?.persist) return Promise.resolve(persistState); persistAsked = true;
+    return (navigator.storage.persisted ? navigator.storage.persisted() : Promise.resolve(false))
+      .then((p) => p || navigator.storage.persist())
+      .then((ok) => { persistState = !!ok; return persistState; })
+      .catch(() => { persistState = false; return false; });
   }
   function recordOpen(id) {
     askPersist();
@@ -420,10 +424,12 @@
     document.body.classList.remove('in-app');
     document.title = 'Everything';
     $('#dockHome').classList.add('on');
-    renderHero(); renderRecents();
+    renderHero(); renderRecents(); renderHomeFiles();
   }
   // Deep links: #/app/<id>, optionally ?open=<drive path> (repeatable) to open files in it.
   function route() {
+    if (location.hash === '#/files') { goHome(); showFiles(); return; }
+    hideFiles();
     const m = /^#\/app\/([^/?#]+)(?:\?(.*))?/.exec(location.hash);
     if (m) {
       if (m[2] && !pendingItems) {
@@ -496,7 +502,7 @@
       case 'hideWindow': if (tab && tab.id === activeId) go('#/'); break;
       case 'showWindow': if (tab) go(`#/app/${tab.id}`); break;
       case 'fullscreen': toggleFullscreen(); break;
-      case 'toast': toast(d.message || '', d.action === 'settings' ? { action: { label: 'Settings', run: () => openSheet('ai') } } : {}); break;
+      case 'toast': toast(d.message || '', d.action === 'settings' ? { action: { label: 'Settings', run: () => openSheet('ai') } } : d.action === 'files' ? { action: { label: 'Show in Files', run: () => openFiles(d.path) }, timeout: 6500 } : {}); break;
       case 'key':
         if (d.combo === 'mod+k') togglePalette();
         else if (/^mod\+[1-9]$/.test(d.combo)) switchTo(Number(d.combo.slice(-1)) - 1);
@@ -597,11 +603,190 @@
     });
   }
 
+
+  /* ------------------------------------------- Files: what is saved in Everything Hub (this browser) */
+  // Every app saves into one drive in this browser: IndexedDB "everything-drive", rooted at /me. This screen lists the
+  // user's own files there (documents, spreadsheets, decks, PDFs, pictures…), not apps' internal data.
+  const DOC_EXT = new Set(['docx', 'doc', 'odt', 'rtf', 'xlsx', 'xls', 'xlsm', 'csv', 'tsv', 'ods', 'pptx', 'ppt', 'odp', 'pdf', 'md', 'txt', 'html', 'htm', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'psd', 'mp3', 'wav', 'ogg', 'flac', 'mid', 'midi', 'mp4', 'webm', 'mov', 'stl', 'glb', 'gltf', 'obj', 'dxf', 'dwg', 'ics', 'vcf', 'zip']);
+  const extOf = (n) => ((/\.([a-z0-9]+)$/i.exec(n) || [])[1] || '').toLowerCase();
+  const fsBus = (() => { try { return new BroadcastChannel('everything:fs'); } catch { return null; } })();
+  function driveDB() {
+    return new Promise((resolve) => {
+      let req;
+      try { req = indexedDB.open('everything-drive'); } catch { return resolve(null); }
+      req.onupgradeneeded = () => { try { req.transaction.abort(); } catch {} }; // no drive yet: leave creating it to the apps
+      req.onerror = () => resolve(null);
+      req.onsuccess = () => { const db = req.result; if (!db.objectStoreNames.contains('nodes')) { db.close(); resolve(null); } else resolve(db); };
+    });
+  }
+  const reqP = (r) => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  async function driveTx(mode, fn) {
+    const db = await driveDB(); if (!db) throw new Error('Nothing has been saved in this browser yet.');
+    try {
+      return await new Promise((resolve, reject) => {
+        const t = db.transaction('nodes', mode), st = t.objectStore('nodes'); let out;
+        t.oncomplete = () => resolve(out); t.onerror = () => reject(t.error); t.onabort = () => reject(t.error || new Error('Cancelled'));
+        Promise.resolve(fn(st, (v) => { out = v; })).catch((e) => { try { t.abort(); } catch {} reject(e); });
+      });
+    } finally { db.close(); }
+  }
+  async function driveAll() { try { return (await driveTx('readonly', async (st, done) => done(await reqP(st.getAll())))) || []; } catch { return []; } }
+  const parentOf = (p) => p.slice(0, p.lastIndexOf('/')) || '/';
+  function hubLoc(path) {
+    let segs = String(path).split('/').filter(Boolean);
+    if (segs[0] === 'me') segs.shift();
+    if (segs[0] === 'AppData' && segs.length > 2) segs = segs.slice(2);
+    return ['Everything Hub', ...segs].join(' › ');
+  }
+  const folderOf = (path) => hubLoc(parentOf(path)).replace(/^Everything Hub( › )?/, '') || 'Everything Hub';
+  const hiddenPath = (p) => /\/\.[^/]*/.test(p) || /\/(Trash|node_modules|cache)(\/|$)/i.test(p);
+  function isUserFile(n, all) {
+    if (!n || n.is_dir || !String(n.path).startsWith('/me/') || hiddenPath(n.path)) return false;
+    if (all) return true;
+    return !n.path.startsWith('/me/AppData/') || DOC_EXT.has(extOf(n.name));
+  }
+  async function listUserFiles(all) { return (await driveAll()).filter((n) => isUserFile(n, all)).sort((a, b) => (b.modified || 0) - (a.modified || 0)); }
+  function fsNotify(kind, path, extra) { try { fsBus?.postMessage({ kind, type: kind, path, app: 'hub', at: Date.now(), ...(extra || {}) }); } catch {} }
+  async function readDriveFile(path) {
+    const n = await driveTx('readonly', async (st, done) => done(await reqP(st.get(path))));
+    if (!n || n.is_dir) throw new Error('That file is no longer there.');
+    return n.blob instanceof Blob ? n.blob : new Blob([n.blob || ''], { type: n.type || '' });
+  }
+  async function renameDriveFile(path, newName) {
+    const target = `${parentOf(path)}/${newName}`;
+    if (target === path) return path;
+    await driveTx('readwrite', async (st, done) => {
+      const n = await reqP(st.get(path)); if (!n) throw new Error('That file is no longer there.');
+      if (await reqP(st.get(target))) throw new Error(`A file named “${newName}” is already in ${folderOf(path)}.`);
+      st.put({ ...n, path: target, name: newName, parent: parentOf(target), modified: Math.floor(Date.now() / 1000) });
+      st.delete(path); done(target);
+    });
+    fsNotify('rename', target, { from: path });
+    return target;
+  }
+  async function deleteDriveFile(path) {
+    await driveTx('readwrite', async (st) => { st.delete(path); });
+    fsNotify('delete', path);
+  }
+  function saveBlobToDevice(blob, name) {
+    const a = h('a', { href: URL.createObjectURL(blob), download: name || 'file' });
+    document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  }
+  function modal({ title, text, value, ext, confirm = 'OK', danger = false, validate }) {
+    return new Promise((resolve) => {
+      const box = $('#hubModal'); box.replaceChildren(); box.hidden = false;
+      const input = value != null ? h('input', { type: 'text', value, 'aria-label': 'Name', autocomplete: 'off', spellcheck: 'false' }) : null;
+      const errEl = h('p', { class: 'err', role: 'alert' });
+      const finish = (v) => { box.hidden = true; box.replaceChildren(); document.removeEventListener('keydown', onKey, true); resolve(v); };
+      const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); } };
+      document.addEventListener('keydown', onKey, true);
+      const form = h('form', { role: 'dialog', 'aria-modal': 'true', 'aria-label': title, onsubmit: (e) => {
+        e.preventDefault();
+        if (!input) return finish(true);
+        const v = input.value.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim();
+        const bad = validate ? validate(v) : (v ? null : 'Enter a name');
+        if (bad) { errEl.textContent = bad; input.focus(); return; }
+        finish(v);
+      } },
+        h('h3', {}, title), text ? h('p', {}, text) : null,
+        input ? h('div', { class: 'nm' }, input, ext ? h('span', { class: 'ext' }, ext) : null) : null, input ? errEl : null,
+        h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', onclick: () => finish(null) }, 'Cancel'), h('button', { type: 'submit', class: `btn ${danger ? 'danger' : 'primary'}` }, confirm)));
+      box.append(form);
+      box.onpointerdown = (e) => { if (e.target === box) finish(null); };
+      setTimeout(() => { if (input) { input.focus(); input.select(); } else form.querySelector('[type=submit]').focus(); }, 30);
+    });
+  }
+  const filesUI = { folder: 'all', q: '', all: false, highlight: null, list: [] };
+  const isFilesOpen = () => !$('#filesView').hidden;
+  function openFiles(highlight) { filesUI.highlight = highlight || null; closeOverlays(); go('#/files'); }
+  function fileIcon(n) { const app = appForFile(n.path); return app ? appIcon(app) : h('span', { class: 'gl', html: I.file }); }
+  function openDriveFile(n) {
+    const app = appForFile(n.path);
+    if (!app) { toast('No app here opens that kind of file yet. Use Download to keep a copy on your device.'); return; }
+    navigate(app.id, null, [n.path]);
+  }
+  async function renameFlow(n) {
+    const m = /^(.*?)(\.[a-z0-9]{1,8})?$/i.exec(n.name), stem = m[1], ext = m[2] || '';
+    const v = await modal({ title: 'Rename', text: `In ${hubLoc(parentOf(n.path))}`, value: stem, ext, confirm: 'Rename' });
+    if (v == null || v + ext === n.name) return;
+    try { const p = await renameDriveFile(n.path, v + ext); filesUI.highlight = p; toast(`Renamed to “${v + ext}”.`); refreshFiles(); }
+    catch (e) { toast(e.message || 'Couldn’t rename that file.'); }
+  }
+  async function downloadFlow(n) {
+    try { saveBlobToDevice(await readDriveFile(n.path), n.name); toast(`Downloading “${n.name}” to this device.`); }
+    catch (e) { toast(e.message || 'Couldn’t download that file.'); }
+  }
+  async function deleteFlow(n) {
+    const ok = await modal({ title: `Delete “${n.name}”?`, text: 'It is removed from Everything Hub in this browser. This can’t be undone. Download it first if you want a copy on your device.', confirm: 'Delete', danger: true });
+    if (!ok) return;
+    try { await deleteDriveFile(n.path); toast(`Deleted “${n.name}”.`); refreshFiles(); }
+    catch (e) { toast(e.message || 'Couldn’t delete that file.'); }
+  }
+  function fileRow(n) {
+    const meta = `${folderOf(n.path)} · ${fmtBytes(n.size || 0)}${n.modified ? ` · ${ago(n.modified * 1000)}` : ''}`;
+    return h('div', { class: `file-row${filesUI.highlight === n.path ? ' hl' : ''}`, role: 'listitem', dataset: { path: n.path } },
+      fileIcon(n),
+      h('button', { class: 'file-main', title: `Open ${n.name}`, onclick: () => openDriveFile(n) }, h('b', {}, n.name), h('small', {}, meta)),
+      h('div', { class: 'file-acts' },
+        h('button', { onclick: () => openDriveFile(n) }, 'Open'),
+        h('button', { onclick: () => renameFlow(n) }, 'Rename'),
+        h('button', { onclick: () => downloadFlow(n) }, 'Download'),
+        h('button', { class: 'danger', onclick: () => deleteFlow(n) }, 'Delete')));
+  }
+  async function renderFilesView() {
+    filesUI.list = await listUserFiles(filesUI.all);
+    const folders = [...new Set(filesUI.list.map((n) => folderOf(n.path)))].sort((a, b) => a.localeCompare(b));
+    if (filesUI.folder !== 'all' && !folders.includes(filesUI.folder)) filesUI.folder = 'all';
+    const chips = $('#filesChips'); chips.replaceChildren();
+    [['all', 'All files', filesUI.list.length], ...folders.map((f) => [f, f, filesUI.list.filter((n) => folderOf(n.path) === f).length])].forEach(([id, label, n]) =>
+      chips.append(h('button', { class: 'chip', 'aria-pressed': String(filesUI.folder === id), onclick: () => { filesUI.folder = id; renderFilesView(); } }, label, h('span', { class: 'n' }, n))));
+    const q = filesUI.q.toLowerCase();
+    const shown = filesUI.list.filter((n) => (filesUI.folder === 'all' || folderOf(n.path) === filesUI.folder) && (!q || n.name.toLowerCase().includes(q) || folderOf(n.path).toLowerCase().includes(q)));
+    const box = $('#filesList'); box.replaceChildren();
+    if (!shown.length) {
+      box.append(h('div', { class: 'files-empty' }, h('b', {}, filesUI.list.length ? 'Nothing matches' : 'No saved files yet'),
+        filesUI.list.length ? 'Try another search or folder.' : 'When you press Save in Spreadsheet, Documents, Presentation, PDF Editor or another app, the file is kept here — in this browser on this device.'));
+    } else shown.forEach((n) => box.append(fileRow(n)));
+    if (filesUI.highlight) box.querySelector('.file-row.hl')?.scrollIntoView({ block: 'center' });
+    storageLine();
+  }
+  async function storageLine() {
+    const el = $('#filesStore'); if (!el) return;
+    let usage = '';
+    try { const est = await navigator.storage?.estimate?.(); if (est) usage = ` About ${fmtBytes(est.usage || 0)} used.`; } catch {}
+    let p = persistState;
+    try { if (p == null && navigator.storage?.persisted) p = await navigator.storage.persisted(); } catch {}
+    el.replaceChildren(h('span', { html: p ? '<b>Kept safe:</b> this browser agreed not to clear Everything Hub’s storage on its own.' : '<b>Stored in this browser only.</b> Clearing site data (or the browser running very low on space) removes it, so download anything important.' }), usage);
+  }
+  let filesTimer = null;
+  function refreshFiles() { clearTimeout(filesTimer); filesTimer = setTimeout(() => { if (isFilesOpen()) renderFilesView(); renderHomeFiles(); }, 120); }
+  async function renderHomeFiles() {
+    const block = $('#filesBlock'); if (!block) return;
+    const list = (await listUserFiles(false)).slice(0, 6);
+    block.hidden = !list.length;
+    const box = $('#homeFiles'); box.replaceChildren();
+    if (!list.length) return;
+    const grid = h('div', { class: 'home-files' });
+    list.forEach((n) => grid.append(h('button', { class: 'home-file', title: `${n.name} — ${hubLoc(n.path)}`, onclick: () => openDriveFile(n) }, fileIcon(n), h('div', {}, h('b', {}, n.name), h('small', {}, `${folderOf(n.path)}${n.modified ? ` · ${ago(n.modified * 1000)}` : ''}`)))));
+    box.append(grid);
+  }
+  function showFiles() {
+    $('#filesView').hidden = false; document.body.classList.add('in-files');
+    $('#dockHome').classList.remove('on'); $('#dockFiles')?.classList.add('on');
+    document.title = 'Files · Everything';
+    askPersist().then(storageLine);
+    renderFilesView();
+    setTimeout(() => { if (!mobile()) $('#filesQuery').focus({ preventScroll: true }); }, 60);
+  }
+  function hideFiles() { if (isFilesOpen()) { $('#filesView').hidden = true; document.body.classList.remove('in-files'); $('#dockFiles')?.classList.remove('on'); filesUI.highlight = null; } }
+  if (fsBus) fsBus.addEventListener('message', refreshFiles);
+
   function actions() {
     const t = activeTab();
     return [
       { kind: 'action', label: 'Go home', sub: 'Back to all your apps', icon: I.home, run: () => go('#/'), keys: 'home back' },
       { kind: 'action', label: root.dataset.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode', sub: 'Theme', icon: root.dataset.theme === 'dark' ? I.sun : I.moon, run: () => { state.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; save(); applyTheme(); }, keys: 'theme dark light mode night' },
+      { kind: 'action', label: 'Your files', sub: 'Everything you saved, in this browser', icon: I.folder, run: () => openFiles(), keys: 'files documents saved storage drive browse where my files' },
       { kind: 'action', label: 'Open settings', sub: 'Theme, wallpaper, AI and your data', icon: I.gear, run: () => openSheet(), keys: 'preferences settings options' },
       { kind: 'action', label: 'AI settings', sub: aiOn() ? 'Using your own OpenAI-compatible key' : 'Built-in AI is on — optionally use your own key', icon: I.spark, run: () => openSheet('ai'), keys: 'ai key openai model assistant gpt' },
       { kind: 'action', label: 'Export all my data', sub: 'Download a backup of everything', icon: I.down, run: exportData, keys: 'backup export download save' },
@@ -990,6 +1175,8 @@
       if ($$('.menu-pop').length) { closeMenus(); return; }
       if (isPalOpen()) { closePalette(); return; }
       if ($('#sheet').classList.contains('on')) { closeSheet(); return; }
+      if (!$('#hubModal').hidden) return;
+      if (isFilesOpen()) { e.preventDefault(); go('#/'); return; }
       if (document.body.classList.contains('in-app')) { e.preventDefault(); go('#/'); }
     }
     if (e.key === '/' && !isPalOpen() && !document.body.classList.contains('in-app') && !/INPUT|TEXTAREA/.test(document.activeElement?.tagName)) { e.preventDefault(); openPalette(); }
@@ -998,7 +1185,16 @@
   /* ----------------------------------------------------------- wiring */
   function wire() {
     setIcon($('#settingsBtn'), I.gear); setIcon($('#homeBtn'), I.grid); setIcon($('#reloadBtn'), I.reload); setIcon($('#popBtn'), I.ext); setIcon($('#fsBtn'), I.full); setIcon($('#moreBtn'), I.more); setIcon($('#sheetClose'), I.x);
-    $('#dockHome .d-ic').outerHTML = I.home; $('#dockSearch .d-ic').outerHTML = I.search; $('#dockOpen .d-ic').outerHTML = I.layers; $('#dockSettings .d-ic').outerHTML = I.gear;
+    $('#dockHome .d-ic').outerHTML = I.home; $('#dockSearch .d-ic').outerHTML = I.search; $('#dockOpen .d-ic').outerHTML = I.layers; $('#dockSettings .d-ic').outerHTML = I.gear; $('#dockFiles .d-ic').outerHTML = I.folder;
+    $('#filesBtn').innerHTML = `${I.folder}<span>Files</span>`; setIcon($('#filesBack'), I.home); setIcon($('#filesSearchIc'), I.search);
+    $('#filesBtn').addEventListener('click', () => openFiles());
+    $('#allFiles').addEventListener('click', () => openFiles());
+    $('#dockFiles').addEventListener('click', () => openFiles());
+    $('#filesBack').addEventListener('click', () => go('#/'));
+    $('#filesQuery').addEventListener('input', (e) => { filesUI.q = e.target.value.trim(); renderFilesView(); });
+    $('#filesShowAll').addEventListener('change', (e) => { filesUI.all = e.target.checked; renderFilesView(); });
+    $('#browseFilesBtn')?.addEventListener('click', () => { closeSheet(); openFiles(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshFiles(); });
     $('#kbdHint').textContent = `${MOD} K`; $('#modKey').textContent = MOD;
     $('#searchBtn').addEventListener('click', () => openPalette());
     $('#settingsBtn').addEventListener('click', () => openSheet());

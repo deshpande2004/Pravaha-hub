@@ -2066,6 +2066,12 @@
       '.ev-dialog{background:#fcfaf6;border-radius:16px;box-shadow:0 24px 70px rgba(30,20,10,.3);padding:22px;max-width:min(420px,92vw);width:100%;animation:evpop .18s cubic-bezier(.2,.9,.3,1.2)}' +
       '.ev-dialog p{margin:0 0 14px;white-space:pre-wrap}.ev-dialog input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid rgba(60,50,40,.2);border-radius:10px;font:inherit;margin-bottom:14px;background:#fff}' +
       '.ev-row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.ev-row button{border:0;border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer;background:rgba(60,50,40,.08);color:inherit}.ev-row button.primary{background:#2a2622;color:#fcfaf6}' +
+      '.ev-dialog .ev-h{margin:0 0 14px;font-size:17px;font-weight:650}.ev-lab{display:block;font-size:12.5px;font-weight:600;opacity:.8}.ev-name{display:flex;align-items:center;gap:6px;margin-top:6px}.ev-name input{flex:1;margin:0}.ev-ext{opacity:.65;font-weight:600}' +
+      '.ev-dialog .ev-where{margin:12px 0 4px;font-weight:600;font-size:13px;white-space:normal}.ev-dialog .ev-note{margin:0 0 14px;font-size:12.5px;opacity:.72;white-space:normal}.ev-dialog .ev-err{color:#b3261e;margin:6px 0 0;font-size:12.5px}' +
+      '.ev-open{max-width:min(520px,94vw)}.ev-open input[type=search]{margin-bottom:10px}.ev-list{max-height:min(46vh,380px);overflow:auto;margin:0 -6px 14px;display:grid;gap:2px}' +
+      '.ev-file{display:grid;text-align:left;gap:2px;background:none;border:0;border-radius:10px;padding:9px 10px;font:inherit;color:inherit;cursor:pointer}.ev-file:hover,.ev-file:focus{background:rgba(60,50,40,.07);outline:none}.ev-file b{font-weight:600;word-break:break-word}.ev-file small{opacity:.65;font-size:12px}.ev-empty{opacity:.7;padding:10px;margin:0;white-space:normal}' +
+      '.ev-toasts{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:grid;gap:8px;max-width:min(560px,92vw)}.ev-toast{background:#2a2622;color:#fcfaf6;border-radius:12px;padding:10px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:opacity .3s}' +
+      '@media (prefers-color-scheme: dark){.ev-ui{color:#f1ece4}.ev-dialog,.ev-menu{background:#26221e;color:#f1ece4}.ev-dialog input{background:#1b1815;color:inherit;border-color:rgba(255,255,255,.18)}.ev-row button{background:rgba(255,255,255,.1)}.ev-row button.primary{background:#f1ece4;color:#1b1815}.ev-file:hover,.ev-file:focus,.ev-menu button:hover{background:rgba(255,255,255,.08)}}' +
       '@keyframes evpop{from{opacity:0;transform:scale(.96)}}@keyframes evfade{from{opacity:0}}';
     (document.head || document.documentElement).appendChild(st);
   }
@@ -2151,23 +2157,178 @@
     if (n && !n.is_dir) { try { if (await sameBytes(await fs.read(p), file)) return toItem(n); } catch (e) {} }
     return fs.write(p, file, { dedupeName: !!n });
   }
-  function download(blob, name) {
-    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name || 'download';
-    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  /* ---- Everything Hub storage: names, locations, the Save / Open dialogs and device downloads ---- */
+  var EXT_BY_TYPE = {
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx', 'application/vnd.ms-excel': 'xls',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx', 'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx', 'application/pdf': 'pdf',
+    'application/vnd.oasis.opendocument.spreadsheet': 'ods', 'application/vnd.oasis.opendocument.text': 'odt',
+    'text/markdown': 'md', 'text/plain': 'txt', 'text/csv': 'csv', 'text/html': 'html', 'application/json': 'json',
+    'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/svg+xml': 'svg', 'application/zip': 'zip',
+  };
+  // The document's title as the app shows it ("Budget — Spreadsheet" -> "Budget").
+  function docTitle() {
+    var t = String(document.title || '').split(/\s+[\u2014\u2013|\u00b7-]\s+/)[0].trim();
+    return t && t.toLowerCase() !== String(APP).toLowerCase() ? t : '';
   }
-  var launchHandlers = [], closeHandler = null, msgHandlers = [];
+  function safeName(n) { return String(n == null ? '' : n).replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150); }
+  function splitExt(n) { var m = /^(.*?)(\.[a-z0-9]{1,6})?$/i.exec(String(n || '')); return { stem: m[1], ext: m[2] || '' }; }
+  // A device download always gets a real name: the file's own name, or else the document title, plus the right extension.
+  function fileNameFor(blob, name) {
+    var n = safeName(name);
+    var ext = blob && EXT_BY_TYPE[String(blob.type || '').split(';')[0].trim().toLowerCase()];
+    if (!n || /^(download|untitled-\d{9,})(\.[a-z0-9]{1,6})?$/i.test(n)) {
+      var keep = splitExt(n).ext;
+      n = (safeName(docTitle()) || 'Untitled') + (keep && !/^\.\d+$/.test(keep) ? keep : '');
+    }
+    if (ext && !splitExt(n).ext) n += '.' + ext;
+    return n;
+  }
+  function download(blob, name) {
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileNameFor(blob, name);
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    return a.download;
+  }
+  // "/me/AppData/spreadsheet/Spreadsheets/Budget.xlsx" -> "Everything Hub › Spreadsheets › Budget.xlsx"
+  function hubLocation(path) {
+    var segs = normPath(path).split('/').filter(Boolean);
+    if (segs[0] === USERNAME) segs.shift();
+    if (segs[0] === 'AppData' && segs.length > 2) segs = segs.slice(2);
+    return ['Everything Hub'].concat(segs).join(' \u203a ');
+  }
+  function hubSavedText(path) { return 'Saved to ' + hubLocation(path) + ' (stored in this browser)'; }
+  // Ask the browser to keep this site's storage (not evict it under pressure). Best effort; never throws.
+  var persistAsked = false;
+  function askPersist() {
+    if (persistAsked) return Promise.resolve(null); persistAsked = true;
+    try {
+      var st = navigator.storage; if (!st || !st.persist) return Promise.resolve(null);
+      return (st.persisted ? st.persisted() : Promise.resolve(false)).then(function (p) { return p || st.persist(); })
+        .then(function (ok) { try { LS.setItem('everything:persisted', ok ? '1' : '0'); } catch (e) {} return !!ok; }).catch(function () { return null; });
+    } catch (e) { return Promise.resolve(null); }
+  }
+  function toastLocal(message, path) {
+    if (!message) return;
+    if (IN_FRAME) { post('toast', { message: message, action: path ? 'files' : undefined, path: path || undefined }); return; }
+    ensureStyle();
+    var box = document.getElementById('ev-toasts');
+    if (!box) { box = document.createElement('div'); box.id = 'ev-toasts'; box.className = 'ev-ui ev-toasts'; box.setAttribute('aria-live', 'polite'); document.body.appendChild(box); }
+    var t = document.createElement('div'); t.className = 'ev-toast'; t.setAttribute('role', 'status'); t.textContent = message; box.appendChild(t);
+    setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 300); }, 5000);
+  }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  // The Everything Hub Save dialog: name field (suggesting the document title), where it goes, and that it stays in this browser.
+  function saveDialog(o) {
+    ensureStyle();
+    o = o || {};
+    return new Promise(function (resolve) {
+      var s = el('div', 'ev-ui ev-scrim'); var d = el('form', 'ev-dialog ev-save'); d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', o.title || 'Save to Everything Hub');
+      d.appendChild(el('h3', 'ev-h', o.title || 'Save to Everything Hub'));
+      var lab = el('label', 'ev-lab', 'File name'); var row = el('div', 'ev-name');
+      var input = el('input'); input.type = 'text'; input.value = o.name || ''; input.setAttribute('aria-label', 'File name'); input.autocomplete = 'off'; input.spellcheck = false;
+      row.appendChild(input); if (o.ext) row.appendChild(el('span', 'ev-ext', o.ext)); lab.appendChild(row); d.appendChild(lab);
+      var errp = el('p', 'ev-err'); errp.hidden = true; d.appendChild(errp);
+      d.appendChild(el('p', 'ev-where', 'Saves to ' + (o.location || 'Everything Hub \u203a Documents')));
+      d.appendChild(el('p', 'ev-note', 'Stored in this browser on this device, not uploaded. Find it any time in Files on the Everything Hub home screen. Use Download to keep a copy on your device.'));
+      var bar = el('div', 'ev-row');
+      var cancel = el('button', '', 'Cancel'); cancel.type = 'button'; var ok = el('button', 'primary', o.confirm || 'Save'); ok.type = 'submit';
+      bar.appendChild(cancel); bar.appendChild(ok); d.appendChild(bar); s.appendChild(d); document.body.appendChild(s);
+      var finish = function (v) { s.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
+      var onKey = function (e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); } };
+      document.addEventListener('keydown', onKey, true);
+      cancel.onclick = function () { finish(null); };
+      s.addEventListener('pointerdown', function (e) { if (e.target === s) finish(null); });
+      d.onsubmit = function (e) {
+        e.preventDefault();
+        var v = safeName(input.value);
+        if (o.ext && v.toLowerCase().slice(-o.ext.length) === o.ext.toLowerCase()) v = v.slice(0, -o.ext.length).trim();
+        if (!v) { errp.textContent = 'Enter a name'; errp.hidden = false; input.focus(); return; }
+        finish(v);
+      };
+      setTimeout(function () { input.focus(); input.select(); }, 0);
+    });
+  }
+  // The Everything Hub Open dialog: files saved in this browser (newest first), filtered to what the app opens, plus "From this device…".
+  function acceptList(acc) {
+    if (!acc) return [];
+    if (typeof acc === 'string') acc = acc.split(',');
+    else if (!Array.isArray(acc) && typeof acc === 'object') acc = Object.keys(acc).concat([].concat.apply([], Object.values(acc)));
+    return acc.map(function (x) { return String(x).trim().toLowerCase(); }).filter(Boolean);
+  }
+  function matchesAccept(node, acc) {
+    if (!acc.length) return true;
+    var name = node.name.toLowerCase(), type = String(node.type || guessType(node.name)).toLowerCase();
+    return acc.some(function (a) { return a[0] === '.' ? name.slice(-a.length) === a : /\/\*$/.test(a) ? type.indexOf(a.slice(0, -1)) === 0 : type === a; });
+  }
+  async function hubFiles(acc) {
+    var all = await reqP((await store('nodes')).getAll());
+    return all.filter(function (n) { return !n.is_dir && n.path.indexOf(HOME + '/') === 0 && !/\/\.[^/]*/.test(n.path) && !/\/(Trash|node_modules|cache)(\/|$)/i.test(n.path) && matchesAccept(n, acc); })
+      .sort(function (a, b) { return (b.modified || 0) - (a.modified || 0); });
+  }
+  function fmtSize(n) { return n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(1) + ' MB'; }
+  function openDialog(o) {
+    ensureStyle();
+    return new Promise(async function (resolve) {
+      var acc = acceptList(o.accept), files = [];
+      try { files = (await hubFiles(acc)).filter(function (n) { return acc.length || !/\.json$/i.test(n.name) || n.path.indexOf(HOME + '/AppData/') !== 0; }); } catch (e) {}
+      var s = el('div', 'ev-ui ev-scrim'); var d = el('div', 'ev-dialog ev-open'); d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Open from Everything Hub');
+      d.appendChild(el('h3', 'ev-h', 'Open from Everything Hub'));
+      d.appendChild(el('p', 'ev-note', 'Files you saved in this browser, newest first.'));
+      var q = el('input'); q.type = 'search'; q.placeholder = 'Search saved files'; q.setAttribute('aria-label', 'Search saved files'); d.appendChild(q);
+      var list = el('div', 'ev-list'); list.setAttribute('role', 'listbox'); d.appendChild(list);
+      var bar = el('div', 'ev-row');
+      var dev = el('button', '', 'From this device\u2026'); dev.type = 'button';
+      var cancel = el('button', '', 'Cancel'); cancel.type = 'button';
+      bar.appendChild(dev); bar.appendChild(cancel); d.appendChild(bar); s.appendChild(d); document.body.appendChild(s);
+      var finish = function (v) { s.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
+      var onKey = function (e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); } };
+      document.addEventListener('keydown', onKey, true);
+      cancel.onclick = function () { finish(null); };
+      dev.onclick = function () { finish('device'); };
+      s.addEventListener('pointerdown', function (e) { if (e.target === s) finish(null); });
+      var render = function () {
+        list.replaceChildren();
+        var term = q.value.trim().toLowerCase();
+        var shown = files.filter(function (n) { return !term || n.name.toLowerCase().indexOf(term) >= 0; }).slice(0, 200);
+        if (!shown.length) { list.appendChild(el('p', 'ev-empty', files.length ? 'Nothing matches.' : 'No saved files here yet. Save a document first, or open one from this device.')); return; }
+        shown.forEach(function (n) {
+          var b = el('button', 'ev-file'); b.type = 'button'; b.setAttribute('role', 'option');
+          b.appendChild(el('b', '', n.name));
+          var where = hubLocation(dirname(n.path)).replace(/^Everything Hub( \u203a )?/, '') || 'Everything Hub';
+          b.appendChild(el('small', '', where + ' \u00b7 ' + fmtSize(n.size || 0) + ' \u00b7 ' + new Date((n.modified || 0) * 1000).toLocaleString()));
+          b.onclick = function () { finish(n); };
+          list.appendChild(b);
+        });
+      };
+      q.oninput = render; render();
+      setTimeout(function () { (files.length ? q : dev).focus(); }, 0);
+    });
+  }
+  async function pickFromDevice(opts) {
+    var files = await pickFiles({ multiple: !!opts.multiple, accept: opts.accept });
+    var out = [];
+    for (var i = 0; i < files.length; i++) {
+      var it = await importPicked('~/Desktop/' + files[i].name, files[i]);
+      Object.defineProperty(it, 'file', { enumerable: false, value: files[i] });
+      Object.defineProperty(it, 'fromDevice', { enumerable: false, value: true });
+      out.push(it);
+    }
+    return opts.multiple ? out : out[0];
+  }
+  var launchHandlers = [], closeHandler = null, msgHandlers = [], hubAsked = Object.create(null), hubAskedObj = new WeakSet();
   var ui = {
     env: 'web',
+    // Opens files saved in Everything Hub (this browser); "From this device…" imports a file from the device instead.
     async showOpenFilePicker(opts) {
       opts = opts || {};
-      var files = await pickFiles({ multiple: !!opts.multiple, accept: opts.accept });
-      var out = [];
-      for (var i = 0; i < files.length; i++) {
-        var it = await importPicked('~/Desktop/' + files[i].name, files[i]);
-        Object.defineProperty(it, 'file', { enumerable: false, value: files[i] });
-        out.push(it);
-      }
-      return opts.multiple ? out : out[0];
+      if (opts.device || opts.fromDevice) return pickFromDevice(opts);
+      await bootstrap();
+      var pick = await openDialog(opts);
+      if (pick === 'device') return pickFromDevice(opts);
+      if (!pick) throw err('cancelled', 'cancelled');
+      var it = toItem(pick);
+      try { var b = await fs.read(pick.path); Object.defineProperty(it, 'file', { enumerable: false, value: new File([b], pick.name, { type: b.type || guessType(pick.name), lastModified: (pick.modified || 0) * 1000 }) }); } catch (e) {}
+      return opts.multiple ? [it] : it;
     },
     async showDirectoryPicker(opts) {
       opts = opts || {};
@@ -2182,24 +2343,48 @@
         return opts.multiple ? [dir] : dir;
       } catch (e) { throw e; }
     },
+    // Save goes into Everything Hub storage (this browser) through the Hub Save dialog. It never opens the
+    // operating system's save dialog and never downloads a copy behind the user's back: Download does that.
     async showSaveFilePicker(content, suggestedName, opts) {
       if (typeof content === 'string' && suggestedName === undefined && /\.[a-z0-9]{1,6}$/i.test(content) && content.length < 200) { suggestedName = content; content = undefined; }
-      var name = suggestedName || ('Untitled-' + Date.now());
-      var blob = content === undefined ? null : await toBlob(content, guessType(name));
-      var savedToDisk = false;
-      if (blob && window.showSaveFilePicker && !(opts && opts.noDisk)) {
-        try {
-          var h = await window.showSaveFilePicker({ suggestedName: name });
-          var w = await h.createWritable(); await w.write(blob); await w.close();
-          name = h.name || name; savedToDisk = true;
-        } catch (e) {
-          if (e && e.name === 'AbortError') throw err('cancelled', 'cancelled');
-        }
+      if (suggestedName && typeof suggestedName === 'object') { opts = suggestedName; suggestedName = opts.suggestedName; }
+      opts = opts || {};
+      var blob = content === undefined ? null : await toBlob(content, guessType(suggestedName || ''));
+      var name = blob ? fileNameFor(blob, suggestedName) : (safeName(suggestedName) || safeName(docTitle()) || 'Untitled');
+      var parts = splitExt(name), folder = '~/Documents';
+      await bootstrap();
+      var stem = opts.noDialog ? parts.stem : await saveDialog({ name: parts.stem, ext: parts.ext, location: hubLocation(folder) });
+      if (stem == null) throw err('cancelled', 'Save cancelled.');
+      var target = normPath(folder + '/' + stem + parts.ext), wopts = { overwrite: true };
+      var clash = await getNode(target);
+      if (clash && !opts.noDialog) {
+        var choice = await dialog('A file named \u201c' + stem + parts.ext + '\u201d is already in ' + hubLocation(folder) + '. Replace it?', [{ label: 'Cancel', value: 'cancel' }, { label: 'Keep both', value: 'both' }, { label: 'Replace', value: 'replace', type: 'primary' }]);
+        if (choice === 'cancel' || choice == null) throw err('cancelled', 'Save cancelled.');
+        if (choice === 'both') wopts = { dedupeName: true };
       }
-      if (blob && !savedToDisk) download(blob, name);
-      var item = blob ? await fs.write('~/Documents/' + name, blob, { overwrite: true }) : toItem(Object.assign(dirNode(normPath('~/Documents/' + name)), { is_dir: false }));
+      var item = blob ? await fs.write(target, blob, wopts) : toItem(Object.assign(dirNode(target), { is_dir: false }));
+      if (blob) { askPersist(); if (!opts.quiet) toastLocal(hubSavedText(item.path), item.path); }
       return item;
     },
+    // Everything Hub helpers for apps: where a file lives, the "Saved to …" message, the name prompt for a first save, device downloads.
+    hubLocation: function (path) { return hubLocation(path); },
+    hubSavedText: function (path) { return hubSavedText(path); },
+    hubSaved: function (path) { askPersist(); toastLocal(hubSavedText(path), normPath(path)); return hubSavedText(path); },
+    // Returns undefined when no prompt is needed (the document already has a real name, or was asked about this session),
+    // null when the user cancels, or the chosen name without extension.
+    hubSaveName: async function (o) {
+      o = o || {};
+      var name = String(o.name || '').trim(), key = o.id != null && typeof o.id === 'object' ? o.id : o.id != null ? String(o.id) : null;
+      var asked = function () { return key == null ? false : typeof key === 'object' ? hubAskedObj.has(key) : !!hubAsked[key]; };
+      if (!o.force && !/^untitled\b/i.test(name)) return undefined;
+      if (!o.force && asked()) return undefined;
+      var ext = o.ext ? (o.ext[0] === '.' ? o.ext : '.' + o.ext) : '';
+      var v = await saveDialog({ name: name || 'Untitled', ext: ext, location: o.location || hubLocation(o.folder ? (o.folder[0] === '/' || o.folder[0] === '~' ? o.folder : o.folder) : '~/Documents') });
+      if (v != null) { if (key != null) { if (typeof key === 'object') hubAskedObj.add(key); else hubAsked[key] = 1; } askPersist(); }
+      return v;
+    },
+    downloadFile: async function (content, name) { var blob = await toBlob(content, guessType(name || '')); return download(blob, name); },
+    persistStorage: function () { persistAsked = false; return askPersist(); },
     contextMenu(o) { var items = Array.isArray(o) ? o : (o && o.items) || []; var x = o && o.position ? o.position.left || o.position.x : lastPointer.x, y = o && o.position ? o.position.top || o.position.y : lastPointer.y; showMenu(items, x, y); },
     async alert(message, buttons) { return dialog(message, buttons); },
     async prompt(message, placeholder, defaultValue) { return dialog(message, [{ label: 'Cancel', value: false }, { label: 'OK', type: 'primary' }], defaultValue != null ? String(defaultValue) || true : true, placeholder); },

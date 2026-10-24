@@ -38,6 +38,7 @@
     <header class="top">
       <a class="brand" href="#/" aria-label="Everything home"><img src="icon-192.png" alt="">Everything</a>
       <div class="top-actions">
+        <button class="files-btn" id="filesBtn" aria-label="Files saved in this browser" title="Your files (saved in this browser)"></button>
         <button class="icon-btn desk" id="themeBtn" aria-label="Toggle dark mode" title="Toggle dark mode"></button>
         <button class="icon-btn" id="settingsBtn" aria-label="Settings" title="Settings"></button>
       </div>
@@ -60,6 +61,11 @@
       <div id="recents"></div>
     </section>
 
+    <section class="block" id="filesBlock" hidden>
+      <div class="block-head"><div><h2>Your files</h2><p>Saved to Everything Hub in this browser.</p></div><button class="link" id="allFiles">See all files</button></div>
+      <div id="homeFiles"></div>
+    </section>
+
     <section class="block" id="pinBlock">
       <div class="block-head"><div><h2>Pinned</h2><p>Your favourites, in your order. Drag to rearrange.</p></div></div>
       <div id="pins"></div>
@@ -70,7 +76,7 @@
 
     <footer class="foot">
       <span class="serif">Everything, everywhere, on your device.</span>
-      Open-source and MIT-licensed. Your files and data stay in this browser — no account, no cloud.
+      Open-source and MIT-licensed. Your files and data stay in this browser — no account, no cloud. See them any time in <a href="#/files">Files</a>.
     </footer>
   </div>
 </main>
@@ -92,9 +98,28 @@
 <nav class="dock" id="dock" aria-label="Dock">
   <button id="dockHome" class="on"><span class="d-ic"></span>Home</button>
   <button id="dockSearch"><span class="d-ic"></span>Search</button>
+  <button id="dockFiles"><span class="d-ic"></span>Files</button>
   <button id="dockOpen"><span class="d-ic"></span>Open</button>
   <button id="dockSettings"><span class="d-ic"></span>Settings</button>
 </nav>
+
+<section class="files-view" id="filesView" aria-label="Files" hidden>
+  <div class="files-in">
+    <header class="files-head">
+      <button class="icon-btn" id="filesBack" aria-label="Back home" title="Back home (Esc)"></button>
+      <div class="files-title"><h2>Files</h2><p id="filesWhere">Everything you save in Everything Hub lives here, in this browser on this device.</p></div>
+    </header>
+    <div class="files-tools">
+      <label class="files-search"><span class="gl" id="filesSearchIc"></span><input id="filesQuery" type="search" placeholder="Search your files" aria-label="Search your files" autocomplete="off"></label>
+      <div class="chips" id="filesChips" role="toolbar" aria-label="Folders"></div>
+    </div>
+    <p class="files-store" id="filesStore"></p>
+    <div id="filesList" class="files-list" role="list"></div>
+    <label class="files-all"><input type="checkbox" id="filesShowAll"> Show app data files too</label>
+  </div>
+</section>
+
+<div class="hub-modal" id="hubModal" hidden></div>
 
 <div class="scrim" id="scrim"></div>
 
@@ -132,6 +157,7 @@
     <div class="set-group">
       <h3>Your data</h3>
       <p class="note" id="dataNote">Everything you make lives in this browser.</p>
+      <div class="row" style="margin-bottom:10px"><button class="btn primary" id="browseFilesBtn">Browse my files</button></div>
       <div class="row">
         <button class="btn" id="exportBtn">Export all my data</button>
         <label class="btn" for="importFile" style="cursor:pointer">Import…</label>

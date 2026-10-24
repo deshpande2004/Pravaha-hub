@@ -4,13 +4,16 @@
  *       content-hashed build assets are cache-first (they never change); everything else is stale-while-revalidate.
  * The app cache survives updates so apps opened before keep working offline; only the shell cache is versioned.
  * Retired hosts (*.invalid) are never contacted; the old SDK address is answered with everything-core.js. */
-const VERSION = 'everything-v4-2c039ff7f2';
+const VERSION = 'everything-v4-hubfiles-1';
 const SHELL = `${VERSION}-shell`;
 const APPS = 'everything-apps-v4';
 const FONTS = 'everything-fonts-v4';
 const SHELL_FILES = ['./', 'index.html', 'hub.css', 'hub.js', 'apps.json', 'everything-core.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-180.png', 'icon-32.png', 'fonts.css', 'fonts/InstrumentSerif-italic-latin-1.woff2', 'fonts/InstrumentSerif-italic-latin-ext-0.woff2', 'fonts/InstrumentSerif-normal-latin-3.woff2', 'fonts/InstrumentSerif-normal-latin-ext-2.woff2', 'fonts/Inter-normal-latin-5.woff2', 'fonts/Inter-normal-latin-ext-4.woff2'];
 const EHUB = /\.invalid$/i;
 const TRACKERS = /(^|\.)(plausible\.io|google-analytics\.com|googletagmanager\.com|analytics\.google\.com|segment\.io|cdn\.segment\.com|mixpanel\.com|hotjar\.com|posthog\.com|sentry\.io)$/i;
+// Build assets patched in place (same hashed name) by a Hub release; purged from the app cache on activate
+// so returning users get the new code. Keep entries listed until clients have upgraded.
+const PATCHED_ASSETS = ['apps/spreadsheet/assets/index-CLkObwvf.js', 'apps/documents/assets/editor-CexbhN6S.js', 'apps/presentation/assets/index-ByIk42KT.js', 'apps/whiteboard/assets/index-BYOKjIPH.js', 'apps/pdf/assets/editor-Djn6p-i7.js', 'apps/pdf/assets/index-C4zgv6ok.js'];
 const HASHED = /\/assets\/[^/]+[-.][A-Za-z0-9_]{8,}\.(?:js|mjs|css|wasm|woff2?|ttf|png|jpe?g|webp|avif|svg|gif|json|data|bin)$/;
 
 // Install never fails on a flaky (mobile) connection: each shell file is cached on its own; a miss is fetched later.
@@ -30,6 +33,10 @@ self.addEventListener('activate', (e) => {
     // need the retired SDK file; pages already open under them show "SDK failed to load". Purge and reload once.
     const legacy = keys.some((k) => !keep.has(k) && !/^everything-(v4-|apps-v4$|fonts-v4$)/.test(k));
     for (const k of keys) if (!keep.has(k)) await caches.delete(k);
+    if (keys.includes(APPS)) {
+      const ac = await caches.open(APPS);
+      await Promise.allSettled(PATCHED_ASSETS.map((f) => ac.delete(new URL(f, scopeURL).href, { ignoreSearch: true })));
+    }
     await self.clients.claim();
     // Pages already open under those caches are reloaded by the hub (frames without a working engine) when this
     // worker takes control; WindowClient.navigate() is not used because some Chrome builds close the tab instead.
