@@ -1,7 +1,7 @@
 PDF Editor: third-party notices
 
 These licenses apply to their respective dependencies, not to the application as a whole.
-Everything Hub is loaded from https://sdk.everything-hub.invalid/ and is subject to Everything Hub terms.
+Pravahahub is loaded from https://sdk.everything-hub.invalid/ and is subject to Pravahahub terms.
 
 
 ========================================================================

@@ -1,5 +1,5 @@
 {
-  // Everything Hub: static apps in ./site plus the /api backend, deployed by Workers Builds on every push to main.
+  // Pravahahub: static apps in ./site plus the /api backend, deployed by Workers Builds on every push to main.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "everything-hub",
   "main": "worker/index.js",

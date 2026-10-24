@@ -2,14 +2,14 @@
 export default function install(router, me, ehub) {
 /**
  * Emailing tenants, owners and vendors from the app: the app's one shared,
- * app-owned Everything Hub worker (deployed to https://property-management-email.ehub.work;
+ * app-owned Pravahahub worker (deployed to https://property-management-email.ehub.work;
  * src/mailer.js is the calling side).
  *
  * It is deployed ONCE, by the app owner (npm run deploy:email-worker):
  * outbound mail has to be authorized by a worker's own token, so the sending
  * capability lives somewhere the app controls. The cost does not: the app
  * calls this worker with ehub.workers.exec(), which forwards the signed-in
- * user's Everything Hub token, and each message is sent with that token in hand, so
+ * user's Pravahahub token, and each message is sent with that token in hand, so
  * every send is billed to, and rate-limited as, the user who asked for it.
  *
  *   POST /send    email one message to its recipients (one private mail each)
@@ -19,7 +19,7 @@ export default function install(router, me, ehub) {
  * An app-owned relay that forwarded whatever it was handed would be a spam
  * cannon wearing this app's sending reputation, so:
  *
- *   - no Everything Hub session, no send. `user` is only populated for callers that
+ *   - no Pravahahub session, no send. `user` is only populated for callers that
  *     come through ehub.workers.exec(); everyone else gets 401, and so does
  *     a caller whose session arrived without a form that bills THEM.
  *   - the caller supplies TEXT, never markup. The body is HTML-escaped here
@@ -80,9 +80,9 @@ function callerOf(ctx) {
  * so it has to be the same tomorrow as it is today, and different for every
  * user. Do NOT assume it is sitting on the caller object: the live platform
  * (2026-08) hands over a caller whose only own property is `ehub`, so the
- * documented `user.uuid` is absent and asking their own Everything Hub is the path that
+ * documented `user.uuid` is absent and asking their own Pravahahub is the path that
  * actually answers. Try the known names first anyway, then the ones nested
- * under their Everything Hub handle, then getUser(). '' means "could not tell", which
+ * under their Pravahahub handle, then getUser(). '' means "could not tell", which
  * is refused rather than guessed at: a shared id would let one user's dedupe
  * record suppress another user's message.
  */
@@ -510,7 +510,7 @@ router.get('/whoami', async (ctx) => {
  */
 router.post('/send', async (ctx) => {
   // A caller context exists only for requests that came through
-  // ehub.workers.exec(), which forwards their Everything Hub session. No session, no
+  // ehub.workers.exec(), which forwards their Pravahahub session. No session, no
   // send - and no way to bill anyone for one either. `detail` separates "no
   // session arrived" from "a session arrived that we could not pin to a
   // person"; GET /whoami reports the same picture in full.

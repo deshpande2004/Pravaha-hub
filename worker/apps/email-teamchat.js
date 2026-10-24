@@ -9,7 +9,7 @@ export default function install(router, me, ehub) {
  * outbound mail has to be authorized by a worker's own token, and that
  * capability must not be minted per user, so it lives somewhere the app
  * controls. The cost does not: the app calls this worker with
- * ehub.workers.exec(), which forwards the signed-in user's Everything Hub token, and
+ * ehub.workers.exec(), which forwards the signed-in user's Pravahahub token, and
  * each message is sent with that token in hand — so every send is billed to,
  * and rate-limited as, the person who asked for it, never the app owner.
  *
@@ -22,7 +22,7 @@ export default function install(router, me, ehub) {
  *
  * An app-owned relay that forwarded whatever it was handed would be a spam
  * cannon wearing Teamchat's sending reputation, so it never does:
- *   - no Everything Hub session, no send. `user` is only populated for callers that
+ *   - no Pravahahub session, no send. `user` is only populated for callers that
  *     come through ehub.workers.exec(); everyone else gets 401.
  *   - the caller supplies the PARTS of an invitation (server, code, names, a
  *     note), never a message. Subject, body, and above all the link are
@@ -440,7 +440,7 @@ router.get('/whoami', async (ctx) => {
 
 router.post('/invites', async (ctx) => {
   // A caller context exists only for requests that came through
-  // ehub.workers.exec(), which forwards their Everything Hub session. No session, no
+  // ehub.workers.exec(), which forwards their Pravahahub session. No session, no
   // send — and no way to bill anyone for one either.
   const caller = callerOf(ctx);
   if (!caller || !caller.ehub) return json({ error: 'sign_in_required', detail: 'no_caller' }, 401);

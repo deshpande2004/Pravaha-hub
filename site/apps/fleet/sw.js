@@ -1,12 +1,12 @@
 /*
  * Offline support for the app shell. Data never goes through here: records
- * come from Everything Hub and are cached by the app itself in IndexedDB.
+ * come from Pravahahub and are cached by the app itself in IndexedDB.
  *
  * - Page loads: network first, falling back to the cached shell offline.
  * - Hashed build assets: cache first (their names change with every build).
  * - Other same-origin files (icons, manifest): stale while revalidate.
- * - The Everything Hub SDK: network first, with a copy for starting offline.
- * - Other cross-origin requests (Everything Hub's API) are never touched, and
+ * - The Pravahahub SDK: network first, with a copy for starting offline.
+ * - Other cross-origin requests (Pravahahub's API) are never touched, and
  *   neither is the team worker source, which owners deploy from here.
  */
 const SDK = '../../everything-core.js';

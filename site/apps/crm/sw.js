@@ -14,7 +14,7 @@
  * refreshed. So the first visit needs the network; every one after it
  * doesn't.
  *
- * What is never cached: Everything Hub's own API. Auth and KV calls must fail fast
+ * What is never cached: Pravahahub's own API. Auth and KV calls must fail fast
  * offline so the app's outbox takes over - a stale cached answer there
  * would be a lie about the user's data.
  */
@@ -32,11 +32,11 @@ const SHELL_URLS = [
   './favicon.ico',
 ];
 
-/** Everything Hub's own services: never served from cache. */
+/** Pravahahub's own services: never served from cache. */
 const isEhubAPI = (url) => /(^|\.)ehub\.(com|localhost)$/i.test(url.hostname)
   && !/^js\./i.test(url.hostname);
 
-/** The SDK itself, from Everything Hub's CDN: cacheable, and needed to boot at all. */
+/** The SDK itself, from Pravahahub's CDN: cacheable, and needed to boot at all. */
 const isEhubSDK = (url) => /^js\.ehub\.com$/i.test(url.hostname);
 
 self.addEventListener('install', (event) => {

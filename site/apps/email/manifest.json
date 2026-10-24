@@ -1,7 +1,7 @@
 {
-  "name": "Everything Hub Mail",
-  "short_name": "Everything Hub Mail",
-  "description": "A fast, private email client for your Everything Hub account.",
+  "name": "Pravahahub Mail",
+  "short_name": "Pravahahub Mail",
+  "description": "A fast, private email client for your Pravahahub account.",
   "lang": "en",
   "dir": "ltr",
   "categories": ["productivity", "utilities"],

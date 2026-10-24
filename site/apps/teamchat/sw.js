@@ -26,7 +26,7 @@ self.addEventListener('message', (event) => {
 /**
  * Navigations: the network first, so a new deployment shows up, and the
  * cached shell when offline. Hashed assets: cache first (their names change
- * with their content). The Everything Hub SDK: stale-while-revalidate, so the app can
+ * with their content). The Pravahahub SDK: stale-while-revalidate, so the app can
  * boot offline. API traffic goes through ehub.workers.exec and is not
  * touched here.
  */

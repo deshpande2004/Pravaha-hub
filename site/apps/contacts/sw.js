@@ -2,7 +2,7 @@
  *
  * Deliberately conservative: it ONLY touches same-origin GET requests for the
  * app's own static shell. Every cross-origin request — most importantly the
- * Everything Hub SDK and all Everything Hub API / KV / auth traffic — is left
+ * Pravahahub SDK and all Pravahahub API / KV / auth traffic — is left
  * entirely to the network, so this worker can never serve stale cloud data or
  * interfere with sign-in.
  *
@@ -59,7 +59,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request
 
-  // Only ever handle same-origin GETs. Everything else (Everything Hub SDK, Everything Hub API,
+  // Only ever handle same-origin GETs. Everything else (Pravahahub SDK, Pravahahub API,
   // POSTs, …) goes straight to the network, untouched by this worker.
   if (req.method !== 'GET') return
   const url = new URL(req.url)
